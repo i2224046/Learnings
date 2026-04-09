@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS 基礎プロパティ図鑑</title>
+  <style>
+    /* 基本のスタイル（ここは学習対象外） */
+    body {
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      background: #fff;
+      padding: 20px;
+      border-bottom: 3px solid #333;
+      margin-bottom: 30px;
+    }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header p { margin: 10px 0 0; font-size: 0.9rem; color: #666; }
+
+    /* カードのレイアウト */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-weight: bold;
+      font-size: 0.9rem;
+      border-left: 4px solid #333;
+      padding-left: 8px;
+      margin-bottom: 15px;
+    }
+    .preview-box {
+      background: #eee;
+      padding: 20px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .code-label {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 10px;
+      font-size: 0.8rem;
+      margin: 0;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      cursor: pointer;
+    }
+    pre:hover {
+      opacity: 0.9;
+    }
+
+    /* 通知トースト */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      display: none;
+      font-size: 0.8rem;
+    }
+
+    /* --------------------------------------------------
+       以下、学習用のサンプルプロパティ群
+    -------------------------------------------------- */
+    
+    /* 文字の色 */
+    .sample-color { color: red; }
+    
+    /* 文字のサイズ */
+    .sample-size { font-size: 24px; }
+    
+    /* 文字の太さ */
+    .sample-weight { font-weight: bold; }
+    
+    /* 背景の色 */
+    .sample-bg { background-color: yellow; padding: 10px; }
+    
+    /* 枠線（ボーダー） */
+    .sample-border { border: 2px solid black; padding: 10px; }
+    
+    /* 角丸 */
+    .sample-radius { border: 2px solid black; border-radius: 15px; padding: 10px; background: white; }
+    
+    /* 内側の余白 (Padding) */
+    .sample-padding { background: #ccc; border: 1px solid #999; padding: 30px; }
+    
+    /* 外側の余白 (Margin) ※比較用に2つ配置 */
+    .sample-margin { background: #333; color: white; margin: 20px; padding: 5px; }
+    
+    /* 文字を中央寄せ */
+    .sample-align { text-align: center; width: 100%; }
+    
+    /* 影をつける */
+    .sample-shadow { background: white; padding: 10px; box-shadow: 5px 5px 10px rgba(0,0,0,0.3); }
+    
+    /* 透明度 */
+    .sample-opacity { background: blue; color: white; padding: 10px; opacity: 0.5; }
+    
+    /* 下線 */
+    .sample-decoration { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>CSS 基礎プロパティ図鑑</h1>
+    <p>コードをクリックするとCSSをコピーできます。もっとも基本的なプロパティを集めました。</p>
+  </header>
+
+  <div class="grid" id="main-grid">
+    <!-- JSで生成されます -->
+  </div>
+</div>
+
+<div id="toast">コピーしました！</div>
+
+<script>
+  const data = [
+    { title: "color (文字の色)", html: '<span class="sample-color">赤い文字</span>', css: "color: red;" },
+    { title: "font-size (文字の大きさ)", html: '<span class="sample-size">大きい文字</span>', css: "font-size: 24px;" },
+    { title: "font-weight (文字の太さ)", html: '<span class="sample-weight">太い文字</span>', css: "font-weight: bold;" },
+    { title: "background-color (背景色)", html: '<div class="sample-bg">背景が黄色</div>', css: "background-color: yellow;" },
+    { title: "border (枠線)", html: '<div class="sample-border">黒い枠線</div>', css: "border: 2px solid black;" },
+    { title: "border-radius (角を丸める)", html: '<div class="sample-radius">カド丸</div>', css: "border-radius: 15px;" },
+    { title: "padding (内側の余白)", html: '<div class="sample-padding">余白</div>', css: "padding: 30px;" },
+    { title: "margin (外側の余白)", html: '<div style="background:#ddd"><div class="sample-margin">周囲に隙間</div></div>', css: "margin: 20px;" },
+    { title: "text-align (行揃え)", html: '<div class="sample-align">真ん中寄せ</div>', css: "text-align: center;" },
+    { title: "box-shadow (影)", html: '<div class="sample-shadow">影付きボックス</div>', css: "box-shadow: 5px 5px 10px rgba(0,0,0,0.3);" },
+    { title: "opacity (透明度)", html: '<div class="sample-opacity">半透明</div>', css: "opacity: 0.5;" },
+    { title: "text-decoration (装飾)", html: '<span class="sample-decoration">下線つき</span>', css: "text-decoration: underline;" }
+  ];
+
+  const grid = document.getElementById('main-grid');
+  const toast = document.getElementById('toast');
+
+  data.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-title">${item.title}</div>
+      <div class="preview-box">${item.html}</div>
+      <div class="code-label">CSSコード:</div>
+      <pre>${item.css}</pre>
+    `;
+
+    card.querySelector('pre').addEventListener('click', () => {
+      copyToClipboard(item.css);
+    });
+
+    grid.appendChild(card);
+  });
+
+  function copyToClipboard(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 1500);
+  }
+</script>
+
+</body>
+</html>
