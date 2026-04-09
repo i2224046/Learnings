@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Control Structures Diagnostic</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .font-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+        /* ソリッドな影 */
+        .solid-shadow {
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+        }
+        .solid-shadow-sm {
+            box-shadow: 3px 3px 0px rgba(0, 0, 0, 1);
+        }
+        
+        /* 候補バッジのトランジション */
+        .candidate-badge {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .candidate-active {
+            background-color: #000;
+            color: #fff;
+            border-color: #000;
+            transform: scale(1);
+            opacity: 1;
+        }
+        .candidate-inactive {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #9ca3af; /* gray-400 */
+            border-color: #d1d5db; /* gray-300 */
+            text-decoration: line-through;
+            transform: scale(0.95);
+            opacity: 0.5;
+            box-shadow: none !important;
+        }
+
+        /* ツリー図用の線 */
+        .tree-line::before {
+            content: "";
+            position: absolute;
+            left: -1rem;
+            top: 0.75rem;
+            width: 1rem;
+            height: 2px;
+            background-color: black;
+        }
+    </style>
+</head>
+<body class="text-black min-h-screen flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="bg-white border-b-4 border-black p-6 md:p-8 mb-8 solid-shadow relative z-20 flex flex-col gap-4">
+        <div class="max-w-4xl mx-auto w-full flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold uppercase tracking-tight">Diagnostic Flow</h1>
+                <p class="mt-1 text-gray-600 font-bold text-sm">PHP制御構文 診断チャート</p>
+            </div>
+            <div class="flex gap-3">
+                <!-- 全体図ボタン -->
+                <button onclick="openTreeModal()" class="bg-[#ffeb3b] border-2 border-black hover:bg-[#fbc02d] transition-colors px-4 py-2 font-bold text-sm flex items-center gap-2 solid-shadow-sm active:translate-y-1 active:translate-x-1 active:shadow-none">
+                    <span>🗺️</span> 全体図を見る
+                </button>
+                <button onclick="resetFlow()" class="border-2 border-black bg-white hover:bg-black hover:text-white transition-colors px-4 py-2 font-bold text-sm flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    最初から
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ（フロー描画エリア） -->
+    <main class="flex-grow w-full max-w-3xl mx-auto px-4 sm:px-6 pb-48 relative z-10">
+        <div id="flow-container" class="flex flex-col items-center w-full">
+            <!-- JavaScriptでここに質問や結果が追加されていきます -->
+        </div>
+    </main>
+
+    <!-- 候補エリア（下部固定） -->
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t-4 border-black p-4 md:p-6 z-40">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
+                <p class="text-sm font-bold whitespace-nowrap bg-gray-200 px-3 py-1 border-2 border-black inline-block w-max">
+                    🎯 現在の候補
+                </p>
+                <div id="candidates-container" class="flex flex-wrap gap-2 md:gap-3">
+                    <!-- JavaScriptでバッジが生成されます -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🗺️ 全体図モーダル -->
+    <div id="treeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white border-4 border-black solid-shadow w-full max-w-4xl max-h-[85vh] overflow-y-auto relative flex flex-col">
+            <!-- モーダルヘッダー -->
+            <div class="sticky top-0 bg-white border-b-4 border-black p-4 flex justify-between items-center z-10">
+                <h2 class="text-xl font-bold flex items-center gap-2"><span>🗺️</span> 診断ツリー全体図</h2>
+                <button onclick="closeTreeModal()" class="bg-black text-white hover:bg-gray-800 w-10 h-10 flex items-center justify-center font-bold text-xl transition-colors">×</button>
+            </div>
+            
+            <!-- モーダルコンテンツ（ツリー構造） -->
+            <div class="p-6 md:p-8 font-bold text-sm sm:text-base">
+                <div class="bg-gray-100 border-2 border-black p-3 mb-2">Q. 「もし〜なら（条件分岐）」？ それとも「同じ作業を繰り返す」？</div>
+                
+                <div class="ml-4 border-l-2 border-black pl-4">
+                    <!-- 条件分岐ルート -->
+                    <div class="relative tree-line mt-4">
+                        <span class="bg-black text-white px-2 py-0.5 text-xs inline-block mb-1">分岐する</span>
+                        <div class="bg-gray-100 border-2 border-black p-3 mb-2">Q. 「大吉・中吉・凶」のように、ズバリ「どれ」に当てはまるかで分ける？</div>
+                        
+                        <div class="ml-4 border-l-2 border-black pl-4">
+                            <!-- Yes -->
+                            <div class="relative tree-line mt-4">
+                                <span class="bg-black text-white px-2 py-0.5 text-xs inline-block mb-1">ズバリ分ける</span>
+                                <div class="bg-gray-100 border-2 border-black p-3 mb-2">Q. やりたいことは「ただ値を決める（代入する）」だけ？</div>
+                                
+                                <div class="ml-4 border-l-2 border-black pl-4 flex flex-col gap-3 mt-3">
+                                    <div class="relative tree-line">
+                                        <span class="bg-black text-white px-2 py-0.5 text-xs mr-2">値を決めるだけ</span>
+                                        <span class="font-mono text-lg bg-[#bbf7d0] border-2 border-black px-2 py-1">match</span>
+                                    </div>
+                                    <div class="relative tree-line">
+                                        <span class="bg-black text-white px-2 py-0.5 text-xs mr-2">他にも色々する</span>
+                                        <span class="font-mono text-lg bg-[#bbf7d0] border-2 border-black px-2 py-1">switch</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- No -->
+                            <div class="relative tree-line mt-6">
+                                <span class="bg-black text-white px-2 py-0.5 text-xs mr-2 mb-1 inline-block">「50以上」など複雑な条件</span>
+                                <div class="mt-1">
+                                    <span class="font-mono text-lg bg-[#bbf7d0] border-2 border-black px-2 py-1">if / elseif / else</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 繰り返しルート -->
+                    <div class="relative tree-line mt-8">
+                        <span class="bg-black text-white px-2 py-0.5 text-xs inline-block mb-1">繰り返す</span>
+                        <div class="bg-gray-100 border-2 border-black p-3 mb-2">Q. 「買い物リスト（配列）」の中身を1つずつ、端から端まで全部処理する？</div>
+                        
+                        <div class="ml-4 border-l-2 border-black pl-4">
+                            <!-- Yes -->
+                            <div class="relative tree-line mt-4">
+                                <span class="bg-black text-white px-2 py-0.5 text-xs mr-2 mb-1 inline-block">リストを全部処理</span>
+                                <div class="mt-1">
+                                    <span class="font-mono text-lg bg-[#bfdbfe] border-2 border-black px-2 py-1">foreach</span>
+                                </div>
+                            </div>
+                            
+                            <!-- No -->
+                            <div class="relative tree-line mt-6">
+                                <span class="bg-black text-white px-2 py-0.5 text-xs inline-block mb-1">全部ではない</span>
+                                <div class="bg-gray-100 border-2 border-black p-3 mb-2">Q. 「絶対に10回！」のように、最初から回数がカッチリ決まっている？</div>
+
+                                <div class="ml-4 border-l-2 border-black pl-4">
+                                    <div class="relative tree-line mt-4">
+                                        <span class="bg-black text-white px-2 py-0.5 text-xs mr-2 mb-1 inline-block">回数が決まっている</span>
+                                        <div class="mt-1">
+                                            <span class="font-mono text-lg bg-[#bfdbfe] border-2 border-black px-2 py-1">for</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="relative tree-line mt-6">
+                                        <span class="bg-black text-white px-2 py-0.5 text-xs inline-block mb-1">「〇〇になるまで」続ける</span>
+                                        <div class="bg-gray-100 border-2 border-black p-3 mb-2">Q. 条件をチェックする前に、「とりあえず1回は絶対にやってみる」？</div>
+
+                                        <div class="ml-4 border-l-2 border-black pl-4 flex flex-col gap-3 mt-3">
+                                            <div class="relative tree-line">
+                                                <span class="bg-black text-white px-2 py-0.5 text-xs mr-2">まずは1回やってみる</span>
+                                                <span class="font-mono text-lg bg-[#bfdbfe] border-2 border-black px-2 py-1">do-while</span>
+                                            </div>
+                                            <div class="relative tree-line">
+                                                <span class="bg-black text-white px-2 py-0.5 text-xs mr-2">やる前にしっかりチェック</span>
+                                                <span class="font-mono text-lg bg-[#bfdbfe] border-2 border-black px-2 py-1">while</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 全候補リスト
+        const allCandidates = ['if / else', 'match', 'switch', 'foreach', 'for', 'while', 'do-while'];
+
+        // 例えを交えた分かりやすい診断ツリーデータ
+        const diagnosticTree = {
+            id: 'q1',
+            question: 'やりたいことは「もし〜ならAをする（条件分岐）」ですか？（それとも「同じ作業を何度も繰り返す」ですか？）',
+            yesText: '条件で分ける（もし〜なら）',
+            noText: '繰り返す（何度も同じことをする）',
+            candidates: ['if / else', 'match', 'switch', 'foreach', 'for', 'while', 'do-while'],
+            yes: {
+                id: 'q2',
+                question: '「おみくじの結果が『大吉』か『中吉』か『凶』か」のように、1つのデータに対して「ズバリどれに当てはまるか」でいくつも分岐しますか？',
+                yesText: 'はい（ズバリ「これ」という値で分ける）',
+                noText: 'いいえ（「50以上」や複数の条件を組み合わせる）',
+                candidates: ['if / else', 'match', 'switch'],
+                no: {
+                    id: 'r_if',
+                    result: 'if / elseif / else',
+                    description: '「もし点数が80点以上ならA、違えばB」というプログラミングの基本の形です。「〇〇以上」などの大小の比較や、「AかつB」などの複雑な条件を指定したい時に一番向いています！',
+                    candidates: ['if / else']
+                },
+                yes: {
+                    id: 'q4',
+                    question: '分岐した結果、やりたいことは「ただ値を決める（変数に代入する）」だけですか？（例：大吉なら100点、とするだけ）',
+                    yesText: 'はい（値を決めるだけでOK）',
+                    noText: 'いいえ（メッセージを出したり、他の計算もする）',
+                    candidates: ['match', 'switch'],
+                    yes: {
+                        id: 'r_match',
+                        result: 'match',
+                        description: 'PHP 8.0からの新しい機能です！「この値ならコレ！」とズバリ結果だけを決めるなら、これが一番短くてキレイに書けます。switch文でやりがちな「break」の書き忘れの心配もありません。',
+                        candidates: ['match']
+                    },
+                    no: {
+                        id: 'r_switch',
+                        result: 'switch',
+                        description: '「値によってやることを変えたい」けれど、結果を決めるだけでなく、メッセージを出したり他の計算もしたりと色々な作業（複数行のコード）をさせたい時に使います。',
+                        candidates: ['switch']
+                    }
+                }
+            },
+            no: {
+                id: 'q3',
+                question: '「買い物リスト（配列）」の中身を1つずつ取り出して、端から端まで全部のアイテムに対して同じ作業をしたいですか？',
+                yesText: 'はい（リストの端から端まで全部）',
+                noText: 'いいえ（指定した回数だけ、など）',
+                candidates: ['foreach', 'for', 'while', 'do-while'],
+                yes: {
+                    id: 'r_foreach',
+                    result: 'foreach',
+                    description: '箱の中身（配列）を全部チェックする専用の道具です！名簿から1人ずつ名前を呼んでいくような時に大活躍します。PHPの繰り返し処理で一番よく使われる強力な構文です。',
+                    candidates: ['foreach']
+                },
+                no: {
+                    id: 'q5',
+                    question: '「絶対に10回繰り返す！」のように、スタートする前から繰り返す回数がカッチリ決まっていますか？',
+                    yesText: 'はい（回数が決まっている）',
+                    noText: 'いいえ（「〇〇になるまで」続ける）',
+                    candidates: ['for', 'while', 'do-while'],
+                    yes: {
+                        id: 'r_for',
+                        result: 'for',
+                        description: '「1回目、2回目…」と自分でカウント（$iなど）しながら繰り返す仕組みです。「5回だけジャンプする」のように、回数が明確に決まっている時にピッタリです。',
+                        candidates: ['for']
+                    },
+                    no: {
+                        id: 'q6',
+                        question: '条件をチェックする前に、「とりあえず1回は絶対にやってみる（実行する）」必要がありますか？',
+                        yesText: 'はい（まずは1回やってみる）',
+                        noText: 'いいえ（やる前にしっかりチェックする）',
+                        candidates: ['while', 'do-while'],
+                        yes: {
+                            id: 'r_do_while',
+                            result: 'do-while',
+                            description: '「とりあえず1回はやってみて、まだ続けるか後から判断する」というちょっと特殊なループです。とりあえずサイコロを1回振ってみて、1が出たらもう一回振る、というような場面で使います。',
+                            candidates: ['do-while']
+                        },
+                        no: {
+                            id: 'r_while',
+                            result: 'while',
+                            description: '「体力が0になるまで戦い続ける」のように、いつ終わるかは事前に分からないけれど、特定の条件を満たす間はずっと繰り返したい時に使います。',
+                            candidates: ['while']
+                        }
+                    }
+                }
+            }
+        };
+
+        let currentNode = diagnosticTree;
+        const flowContainer = document.getElementById('flow-container');
+        const candidatesContainer = document.getElementById('candidates-container');
+
+        // 初期化処理
+        function init() {
+            // 候補バッジの初期生成
+            candidatesContainer.innerHTML = '';
+            allCandidates.forEach(cand => {
+                const badge = document.createElement('span');
+                badge.id = `cand-${cand.replace(/\s|\//g, '')}`; 
+                badge.className = 'candidate-badge border-2 border-black px-3 py-1 font-mono font-bold text-sm solid-shadow-sm candidate-active';
+                badge.innerText = cand;
+                candidatesContainer.appendChild(badge);
+            });
+
+            resetFlow();
+        }
+
+        // フローをリセット
+        function resetFlow() {
+            flowContainer.innerHTML = '';
+            currentNode = diagnosticTree;
+            updateCandidates(currentNode.candidates);
+            renderQuestion(currentNode);
+        }
+
+        // 候補エリアのUI更新
+        function updateCandidates(activeCandidates) {
+            allCandidates.forEach(cand => {
+                const badgeId = `cand-${cand.replace(/\s|\//g, '')}`;
+                const badge = document.getElementById(badgeId);
+                
+                if (activeCandidates.includes(cand)) {
+                    badge.classList.add('candidate-active', 'solid-shadow-sm');
+                    badge.classList.remove('candidate-inactive');
+                } else {
+                    badge.classList.remove('candidate-active', 'solid-shadow-sm');
+                    badge.classList.add('candidate-inactive');
+                }
+            });
+        }
+
+        // 質問カードのレンダリング
+        function renderQuestion(node) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full mb-8 opacity-0 translate-y-8 transition-all duration-500 ease-out flex flex-col items-center';
+            wrapper.id = `node-${node.id}`;
+
+            const card = document.createElement('div');
+            card.className = 'w-full bg-white border-4 border-black solid-shadow p-6 md:p-8 relative';
+            
+            card.innerHTML = `
+                <div class="absolute -top-4 -left-4 bg-black text-white px-3 py-1 font-mono text-xl font-bold border-2 border-black">Q</div>
+                <p class="font-bold text-lg md:text-xl mb-8 mt-2 leading-relaxed">${node.question}</p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="handleAnswer('yes', this)" class="flex-1 border-2 border-black bg-white hover:bg-black hover:text-white transition-all py-4 px-5 font-bold text-left flex justify-between items-center group shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                        <span>${node.yesText}</span>
+                        <span class="font-mono bg-black text-white px-2 py-1 text-xs group-hover:bg-white group-hover:text-black transition-colors shrink-0 ml-2">YES</span>
+                    </button>
+                    <button onclick="handleAnswer('no', this)" class="flex-1 border-2 border-black bg-white hover:bg-black hover:text-white transition-all py-4 px-5 font-bold text-left flex justify-between items-center group shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                        <span>${node.noText}</span>
+                        <span class="font-mono bg-black text-white px-2 py-1 text-xs group-hover:bg-white group-hover:text-black transition-colors shrink-0 ml-2">NO</span>
+                    </button>
+                </div>
+            `;
+
+            wrapper.appendChild(card);
+            flowContainer.appendChild(wrapper);
+
+            // アニメーション発火
+            requestAnimationFrame(() => {
+                wrapper.classList.remove('opacity-0', 'translate-y-8');
+            });
+            
+            // スクロール
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+        }
+
+        // 回答時の処理
+        function handleAnswer(answerType, buttonElement) {
+            const currentWrapper = document.getElementById(`node-${currentNode.id}`);
+            const selectedText = answerType === 'yes' ? currentNode.yesText : currentNode.noText;
+            const selectedLabel = answerType === 'yes' ? 'YES' : 'NO';
+
+            // 現在のノードを「履歴」表示に変換する
+            const historyHTML = `
+                <div class="w-full md:w-4/5 bg-gray-100 border-2 border-black p-4 relative opacity-80">
+                    <p class="text-sm font-bold mb-3 text-gray-600">Q. ${currentNode.question}</p>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-black text-white px-2 py-1 font-mono text-xs font-bold">${selectedLabel}</span>
+                        <span class="font-bold">${selectedText}</span>
+                    </div>
+                </div>
+                <!-- 下へ繋がる線 -->
+                <div class="w-1 h-12 bg-black my-0"></div>
+            `;
+            
+            currentWrapper.innerHTML = historyHTML;
+            currentWrapper.classList.remove('mb-8'); 
+
+            // 次のノードへ進む
+            currentNode = currentNode[answerType];
+            updateCandidates(currentNode.candidates);
+
+            if (currentNode.question) {
+                renderQuestion(currentNode);
+            } else {
+                renderResult(currentNode);
+            }
+        }
+
+        // 結果カードのレンダリング
+        function renderResult(node) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'w-full opacity-0 scale-95 transition-all duration-700 ease-out mt-2';
+            
+            // 分岐かループかで色を少し変える
+            const isLoop = ['foreach', 'for', 'while', 'do-while'].includes(node.result);
+            const badgeColor = isLoop ? 'text-blue-300 border-blue-300' : 'text-green-300 border-green-300';
+            const badgeText = isLoop ? '🔄 繰り返し処理' : '🔀 条件分岐処理';
+
+            wrapper.innerHTML = `
+                <div class="bg-black text-white border-4 border-black p-8 md:p-10 relative solid-shadow">
+                    <div class="absolute -top-5 -left-5 bg-white text-black px-4 py-2 font-mono text-xl font-bold border-4 border-black">RESULT</div>
+                    
+                    <div class="text-center mb-6 mt-4">
+                        <p class="text-gray-400 font-bold mb-2">あなたに最適な構文は...</p>
+                        <h2 class="text-4xl md:text-5xl font-mono font-bold text-white tracking-wider mb-3">${node.result}</h2>
+                        <span class="inline-block border-2 px-3 py-1 text-sm font-bold rounded-full ${badgeColor}">${badgeText}</span>
+                    </div>
+                    
+                    <div class="bg-gray-800 p-6 border-l-4 border-white mb-8">
+                        <p class="text-lg leading-relaxed font-bold">${node.description}</p>
+                    </div>
+
+                    <div class="text-center">
+                        <button onclick="resetFlow()" class="bg-white text-black hover:bg-gray-200 transition-colors border-2 border-black px-8 py-3 font-bold shadow-[4px_4px_0px_rgba(255,255,255,0.5)] hover:shadow-none hover:translate-x-1 hover:translate-y-1">
+                            もう一度診断する
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            flowContainer.appendChild(wrapper);
+
+            requestAnimationFrame(() => {
+                wrapper.classList.remove('opacity-0', 'scale-95');
+            });
+            
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 300);
+        }
+
+        // モーダル制御関数
+        const modal = document.getElementById('treeModal');
+        
+        function openTreeModal() {
+            modal.classList.remove('hidden');
+            // 少し遅延させてopacityを操作（アニメーションのため）
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+            });
+            document.body.style.overflow = 'hidden'; // 背後のスクロール防止
+        }
+
+        function closeTreeModal() {
+            modal.classList.add('opacity-0');
+            // アニメーション完了後にhiddenを追加
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = ''; 
+            }, 300);
+        }
+
+        // モーダル外枠クリックで閉じる
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeTreeModal();
+            }
+        });
+
+        // 実行
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
