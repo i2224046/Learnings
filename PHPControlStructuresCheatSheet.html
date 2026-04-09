@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Control Structures Cheat Sheet</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                        mono: ['"Roboto Mono"', 'monospace'],
+                    },
+                    boxShadow: {
+                        'solid': '6px 6px 0px 0px rgba(0,0,0,1)',
+                        'solid-sm': '3px 3px 0px 0px rgba(0,0,0,1)',
+                    },
+                    colors: {
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 基本スタイルリセットと角ばったデザインの強制 */
+        * {
+            border-radius: 0 !important;
+        }
+        body {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        /* スクロールバーのカスタマイズ（Webkit） */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-left: 2px solid #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #000;
+        }
+        
+        /* 3Dフリップアニメーション用のクラス */
+        .perspective {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .card-stack {
+            display: grid;
+        }
+        .card-stack > * {
+            grid-area: 1 / 1;
+        }
+        /* 裏面の影の方向を逆にする（180度回転して右下に見えるように調整） */
+        .shadow-flip-back {
+            box-shadow: -6px 6px 0px 0px rgba(0,0,0,1);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        
+        <!-- ヘッダー -->
+        <header class="mb-12 border-b-4 border-black pb-6">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4 uppercase">PHP Control Structures</h1>
+            <p class="text-lg text-gray-700 font-bold">条件分岐と繰り返しの使い分け ＆ 「すべてforで書く」裏技チートシート</p>
+        </header>
+
+        <!-- 使い分け早見表 -->
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 bg-black text-white inline-block px-4 py-2 shadow-solid-sm">使い分け早見表</h2>
+            <div class="overflow-x-auto bg-white border-2 border-black shadow-solid">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200 border-b-2 border-black">
+                            <th class="p-4 border-r-2 border-black font-bold whitespace-nowrap">グループ</th>
+                            <th class="p-4 border-r-2 border-black font-bold whitespace-nowrap">構文</th>
+                            <th class="p-4 font-bold min-w-[200px]">主な用途・どんな時に使う？</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b-2 border-black">
+                            <td class="p-4 border-r-2 border-black font-bold bg-gray-100" rowspan="3">条件分岐</td>
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">if / else</td>
+                            <td class="p-4">複雑な条件、範囲指定（>, <）。「もし〇〇なら」という汎用的な分岐。</td>
+                        </tr>
+                        <tr class="border-b-2 border-black">
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">switch</td>
+                            <td class="p-4">1つの変数を複数の値と（緩く）比較。状態による処理分け（やや古い書き方）。</td>
+                        </tr>
+                        <tr class="border-b-2 border-black">
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">match</td>
+                            <td class="p-4">1つの変数を厳密に比較し、値を返す。switchの現代版（PHP8〜）。</td>
+                        </tr>
+                        <tr class="border-b-2 border-black">
+                            <td class="p-4 border-r-2 border-black font-bold bg-gray-100" rowspan="4">繰り返し</td>
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">foreach</td>
+                            <td class="p-4">配列の中身を順番に取り出して全て処理したい時（一番使います）。</td>
+                        </tr>
+                        <tr class="border-b-2 border-black">
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">for</td>
+                            <td class="p-4">「1から10まで」など、繰り返す回数が明確に決まっている時。</td>
+                        </tr>
+                        <tr class="border-b-2 border-black">
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">while</td>
+                            <td class="p-4">条件が真の間繰り返す。いつ終わるか分からない時。</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 border-r-2 border-black font-mono font-bold">do-while</td>
+                            <td class="p-4">最低1回は必ず実行し、その後条件を満たす間繰り返す時。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- カードコンテナ (JSで生成) -->
+        <div id="content-container"></div>
+
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-black text-white px-6 py-4 border-2 border-white shadow-[4px_4px_0px_rgba(255,255,255,0.5)] transform translate-y-[150%] opacity-0 transition-all duration-300 z-50 flex items-center">
+        <span class="mr-2">✅</span> コピーしました！
+    </div>
+
+    <script>
+        // データ定義
+        const data = [
+            {
+                categoryTitle: "1. 条件分岐 (Conditional Statements)",
+                items: [
+                    {
+                        title: "if / else",
+                        description: "最も汎用的。複雑な条件、範囲指定（<code>&gt;</code>, <code>&lt;</code>）、複数条件（<code>&&</code>, <code>||</code>）に最適。",
+                        code: `$score = 85;
+
+if ($score >= 90) {
+    echo "S評価です！";
+} elseif ($score >= 80) {
+    echo "A評価です！";
+} else {
+    echo "頑張りましょう。";
+}`
+                    },
+                    {
+                        title: "switch",
+                        description: "1つの変数を複数の値と比較。型を厳密にチェックせず、<code>break;</code> が必要なので注意。",
+                        code: `$role = 'admin';
+
+switch ($role) {
+    case 'admin':
+        echo "管理者権限";
+        break; // 必須
+    case 'editor':
+        echo "編集者権限";
+        break;
+    default:
+        echo "一般ユーザー";
+}`
+                    },
+                    {
+                        title: "match (PHP 8.0+)",
+                        description: "<code>switch</code> の進化版。型を厳密に比較し、結果を直接変数に代入可能。<code>break</code> は不要。",
+                        code: `$status = 404;
+
+$message = match ($status) {
+    200 => "成功",
+    400, 404 => "エラー", // 複数条件
+    500 => "サーバーエラー",
+    default => "不明な状態",
+};
+
+echo $message;`
+                    }
+                ]
+            },
+            {
+                categoryTitle: "2. 繰り返し (Loops)",
+                items: [
+                    {
+                        title: "foreach",
+                        description: "配列を扱う時の主役。要素がある限り、順番に全て取り出して処理する。",
+                        code: `$fruits = ['りんご', 'みかん', 'ぶどう'];
+
+foreach ($fruits as $fruit) {
+    echo $fruit . "\\n";
+}`
+                    },
+                    {
+                        title: "for",
+                        description: "回数が決まっているループ。カウンター（<code>$i</code>）を使って制御する。",
+                        code: `// 初期値; 継続条件; 1回ごとの処理
+for ($i = 1; $i <= 3; $i++) {
+    echo $i . "回目の処理\\n";
+}`
+                    },
+                    {
+                        title: "while",
+                        description: "回数は未定だが、条件を満たしている間（<code>true</code> の間）ずっと繰り返す。",
+                        code: `$hp = 10;
+
+while ($hp > 0) {
+    echo "残りHP: " . $hp . "\\n";
+    $hp -= 4;
+}`
+                    },
+                    {
+                        title: "do-while",
+                        description: "条件の判定を最後に行うため、条件を満たしていなくても<strong>必ず最初の1回は実行</strong>される。",
+                        code: `$count = 100;
+
+do {
+    // 1回目は必ず実行される
+    echo "ここは1度表示される\\n";
+} while ($count < 10);`
+                    }
+                ]
+            },
+            {
+                categoryTitle: "3. 全てを「for」で書く裏技 (Advanced)",
+                items: [
+                    {
+                        title: "foreach を for で書く",
+                        description: "配列の要素数を数え、インデックス番号（0からスタート）を使って順番に取り出す方法。",
+                        code: `$fruits = ['りんご', 'みかん', 'ぶどう'];\n$count = count($fruits);\n\nfor ($i = 0; $i < $count; $i++) {\n    $fruit = $fruits[$i];\n    echo $fruit . "\\n";\n}`,
+                        flip: {
+                            title: "本来の foreach",
+                            description: "配列の要素がなくなるまで順番に全て取り出して処理するシンプルな書き方です。",
+                            code: `$fruits = ['りんご', 'みかん', 'ぶどう'];\n\nforeach ($fruits as $fruit) {\n    echo $fruit . "\\n";\n}`
+                        }
+                    },
+                    {
+                        title: "while を for で書く",
+                        description: "<code>for</code> 文の「初期化」と「増減式」を空っぽにすることで、<code>while</code> と同じ動きになります。",
+                        code: `$hp = 10;\n\n// 初期化と増減式を省略（セミコロンだけ残す）\nfor (; $hp > 0; ) {\n    echo "残りHP: " . $hp . "\\n";\n    $hp -= 4;\n}`,
+                        flip: {
+                            title: "本来の while",
+                            description: "回数は未定だが、条件を満たしている間ずっと繰り返す標準的な書き方です。",
+                            code: `$hp = 10;\n\nwhile ($hp > 0) {\n    echo "残りHP: " . $hp . "\\n";\n    $hp -= 4;\n}`
+                        }
+                    },
+                    {
+                        title: "do-while を for で書く",
+                        description: "条件式も省略して「無限ループ」を作り、ループの最後で <code>break</code> して抜ける強引な手法。",
+                        code: `$count = 100;\n\n// 条件も省略して無限ループ\nfor (;;) {\n    echo "ここは1度表示される\\n";\n    \n    // 最後に条件判定して抜ける\n    if (!($count < 10)) {\n        break;\n    }\n}`,
+                        flip: {
+                            title: "本来の do-while",
+                            description: "条件の判定を最後に行うため、条件を満たしていなくても必ず最初の1回は実行されます。",
+                            code: `$count = 100;\n\ndo {\n    // 1回目は必ず実行される\n    echo "ここは1度表示される\\n";\n} while ($count < 10);`
+                        }
+                    }
+                ]
+            }
+        ];
+
+        // DOMの生成
+        const container = document.getElementById('content-container');
+
+        data.forEach(section => {
+            // セクションタイトルの生成
+            const sectionTitle = document.createElement('h2');
+            sectionTitle.className = "text-2xl font-bold mt-16 mb-6 bg-black text-white inline-block px-4 py-2 shadow-solid-sm";
+            sectionTitle.textContent = section.categoryTitle;
+            container.appendChild(sectionTitle);
+
+            // グリッドコンテナの生成
+            const grid = document.createElement('div');
+            grid.className = "grid grid-cols-1 md:grid-cols-2 gap-8";
+            
+            section.items.forEach(item => {
+                
+                // カードの各面を生成する関数
+                function createCardFace(dataItem, isBack = false, isFlippable = false) {
+                    const face = document.createElement('div');
+                    face.className = "bg-white border-2 border-black flex flex-col h-full";
+                    
+                    // 回転しても影が右下に見えるように調整
+                    if (isBack) {
+                        face.classList.add("shadow-flip-back");
+                    } else {
+                        face.classList.add("shadow-solid");
+                    }
+
+                    // ヘッダー＆説明部分
+                    const header = document.createElement('div');
+                    header.className = "p-6 flex-grow border-b-2 border-black relative";
+                    
+                    if (isFlippable) {
+                        header.classList.add("cursor-pointer", "hover:bg-gray-100", "transition-colors", "group/header");
+                        header.title = "クリックで裏返す";
+                        
+                        const iconClass = isBack ? "transform rotate-180" : "group-hover/header:rotate-180 transition-transform";
+                        
+                        header.innerHTML = `
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-xl font-bold font-mono">${dataItem.title}</h3>
+                                <span class="text-xl inline-block ${iconClass}">🔄</span>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed">${dataItem.description}</p>
+                            <div class="absolute bottom-2 right-2 text-[10px] font-bold text-gray-400 tracking-wider">CLICK TO FLIP</div>
+                        `;
+                    } else {
+                        header.innerHTML = `
+                            <h3 class="text-xl font-bold mb-3 font-mono">${dataItem.title}</h3>
+                            <p class="text-gray-700 leading-relaxed">${dataItem.description}</p>
+                        `;
+                    }
+
+                    // コードエリア（クリップボードコピートリガー）
+                    const codeArea = document.createElement('div');
+                    codeArea.className = "bg-gray-900 text-gray-50 p-6 cursor-pointer hover:bg-gray-800 transition-colors relative group/code";
+                    codeArea.innerHTML = `
+                        <div class="absolute top-2 right-4 text-xs text-gray-400 opacity-0 group-hover/code:opacity-100 transition-opacity font-bold uppercase tracking-wider">Click to Copy</div>
+                        <pre class="font-mono text-sm leading-snug overflow-x-auto"><code>${escapeHTML(dataItem.code)}</code></pre>
+                    `;
+                    
+                    // クリックイベントの追加（裏返すイベントを止める）
+                    codeArea.addEventListener('click', (e) => {
+                        e.stopPropagation(); // ヘッダーのフリップイベントを止めてコピーのみ実行
+                        copyToClipboard(dataItem.code);
+                    });
+
+                    face.appendChild(header);
+                    face.appendChild(codeArea);
+                    return { face, header };
+                }
+
+                // フリップデータがある場合は3Dコンテナを作る
+                if (item.flip) {
+                    const container = document.createElement('div');
+                    container.className = "perspective";
+                    
+                    const stack = document.createElement('div');
+                    stack.className = "card-stack relative w-full h-full transition-transform duration-700 transform-style-3d";
+                    
+                    const front = createCardFace(item, false, true);
+                    front.face.classList.add("backface-hidden");
+                    
+                    const back = createCardFace(item.flip, true, true);
+                    back.face.classList.add("backface-hidden", "rotate-y-180");
+                    
+                    stack.appendChild(front.face);
+                    stack.appendChild(back.face);
+                    container.appendChild(stack);
+                    
+                    grid.appendChild(container);
+
+                    // クリックで反転
+                    const toggleFlip = () => {
+                        stack.classList.toggle('rotate-y-180');
+                    };
+                    front.header.addEventListener('click', toggleFlip);
+                    back.header.addEventListener('click', toggleFlip);
+
+                } else {
+                    // 通常のカード
+                    const normalCard = createCardFace(item, false, false);
+                    grid.appendChild(normalCard.face);
+                }
+            });
+
+            container.appendChild(grid);
+        });
+
+        // HTMLエスケープ処理
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        // クリップボードコピー機能（レガシーフォールバック含む）
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                // モダンブラウザ向け
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast();
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                // 古いブラウザ、または iframe/非SSL環境向け
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // 画面外に配置してスクロールを防ぐ
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast();
+                } else {
+                    console.error('Fallback: Copying text command was unsuccessful');
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // トースト通知の表示制御
+        let toastTimeout;
+        function showToast() {
+            const toast = document.getElementById('toast');
+            
+            // 既存のタイマーをクリア
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+            
+            // 表示
+            toast.classList.remove('translate-y-[150%]', 'opacity-0');
+            
+            // 3秒後に非表示
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-[150%]', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
