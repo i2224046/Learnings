@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crazy CSS Cheat Sheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --text-muted: #666666;
+      --border-color: #cccccc;
+      --primary: #333333;
+      --primary-hover: #000000;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px 10px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0 0 10px 0;
+      color: #111827;
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .warning {
+      color: #dc2626;
+      font-weight: bold;
+      font-size: 0.85rem;
+      margin-top: 5px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0;
+      padding: 16px;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+
+    .preview {
+      margin-bottom: 16px;
+      padding: 16px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #222; /* ネタ系は黒背景が映えるためプレビューだけ黒 */
+      border: 1px solid #111;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* デモ領域の要素のリセット */
+    .preview * {
+      box-sizing: border-box;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .code-container {
+      margin-top: auto;
+    }
+
+    .code-btn {
+      background-color: #222222;
+      color: #eeeeee;
+      padding: 12px;
+      border-radius: 0;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      word-break: break-all;
+      white-space: pre-wrap;
+      position: relative;
+      border: 1px solid transparent;
+      text-align: left;
+      line-height: 1.4;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .code-btn:hover {
+      background-color: #000000;
+      border-color: #666666;
+    }
+
+    .code-btn:active {
+      transform: scale(0.99);
+    }
+
+    .code-btn::before {
+      content: "📋 コピー";
+      display: block;
+      margin-bottom: 8px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      border-bottom: 1px solid #444;
+      padding-bottom: 4px;
+    }
+
+    /* トースト通知 */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #222222;
+      color: #fff;
+      text-align: center;
+      border-radius: 0;
+      padding: 14px 24px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      font-weight: 500;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Crazy CSS Decorations</h1>
+      <p>実用性ゼロ。過度な装飾と無駄なアニメーション一覧。</p>
+      <p class="warning">※激しい点滅やアニメーションが含まれます。ご注意ください。</p>
+    </header>
+
+    <div class="grid" id="grid-container">
+      <!-- JSで要素がここに生成されます -->
+    </div>
+  </div>
+
+  <div id="toast">✅ 狂気のCSSをコピーしました！</div>
+
+  <script>
+    // 各種ネタ系CSS装飾のデータ定義
+    const decorations = [
+      {
+        title: "ゲーミングテキスト",
+        html: `<div class="gaming-text">GAMING MODE</div>`,
+        css: `.gaming-text {
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(
+    to right, 
+    #ff0000, #ff7f00, #ffff00, #00ff00, 
+    #0000ff, #4b0082, #9400d3, #ff0000
+  );
+  background-size: 200% auto;
+  color: #000;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow-text 2s linear infinite;
+}
+
+@keyframes rainbow-text {
+  to { background-position: 200% center; }
+}`
+      },
+      {
+        title: "激しいネオンサイン",
+        html: `<div class="neon-crazy">OPEN</div>`,
+        css: `.neon-crazy {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 
+    0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff00de, 
+    0 0 40px #ff00de, 0 0 80px #ff00de, 0 0 90px #ff00de;
+  animation: neon-flicker 0.1s infinite alternate;
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; text-shadow: none; }
+  25%, 75% { opacity: 0.4; }
+}`
+      },
+      {
+        title: "常に震える不安なボタン",
+        html: `<button class="btn-shaking">押さないで</button>`,
+        css: `.btn-shaking {
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  cursor: pointer;
+  animation: shake-hard 0.1s infinite;
+}
+
+@keyframes shake-hard {
+  0% { transform: translate(2px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(0px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(2px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(2px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}`
+      },
+      {
+        title: "無駄に回転する入力欄",
+        html: `<input type="text" class="spin-input" placeholder="入力困難">`,
+        css: `.spin-input {
+  padding: 10px;
+  border: 2px solid #00ff00;
+  background: #000;
+  color: #00ff00;
+  font-weight: bold;
+  outline: none;
+  animation: spin-crazy 2s linear infinite;
+}
+
+@keyframes spin-crazy {
+  100% { transform: rotate(360deg); }
+}`
+      },
+      {
+        title: "スライム風ボタン",
+        html: `<button class="btn-slime">Slime</button>`,
+        css: `.btn-slime {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background-color: #10b981;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  animation: morph-slime 3s ease-in-out infinite;
+}
+
+@keyframes morph-slime {
+  0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+  67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
+}`
+      },
+      {
+        title: "多重影分身テキスト",
+        html: `<div class="shadow-clone">分身の術</div>`,
+        css: `.shadow-clone {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 
+    5px 5px 0px rgba(255,0,0,0.5),
+    10px 10px 0px rgba(0,255,0,0.5),
+    15px 15px 0px rgba(0,0,255,0.5),
+    20px 20px 0px rgba(255,255,0,0.5);
+  animation: clone-move 1s ease-in-out infinite alternate;
+}
+
+@keyframes clone-move {
+  to {
+    text-shadow: 
+      -5px -5px 0px rgba(255,0,0,0.5),
+      -10px -10px 0px rgba(0,255,0,0.5),
+      -15px -15px 0px rgba(0,0,255,0.5),
+      -20px -20px 0px rgba(255,255,0,0.5);
+  }
+}`
+      },
+      {
+        title: "ホバーで逃げるボタン",
+        html: `<button class="btn-runaway">押してみて</button>`,
+        css: `.btn-runaway {
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  font-weight: bold;
+  transition: transform 0.1s;
+}
+
+/* ホバーされるとランダムな方向に逃げる（風） */
+.btn-runaway:hover {
+  transform: translate(
+    calc(50px * var(--rand-x, 1)), 
+    calc(50px * var(--rand-y, -1))
+  );
+}
+.btn-runaway:nth-child(n):hover {
+  --rand-x: -1.5;
+  --rand-y: 1.2;
+}`
+      },
+      {
+        title: "ゲーミング背景ボックス",
+        html: `<div class="gaming-box">PARTY TIME</div>`,
+        css: `.gaming-box {
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  background: linear-gradient(
+    45deg, 
+    #ff0000, #ff7f00, #ffff00, #00ff00, 
+    #0000ff, #4b0082, #9400d3
+  );
+  background-size: 400% 400%;
+  animation: gaming-bg 3s ease infinite;
+}
+
+@keyframes gaming-bg {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}`
+      },
+      {
+        title: "バグったテキスト（グリッチ）",
+        html: `<div class="glitch-text" data-text="ERROR 404">ERROR 404</div>`,
+        css: `.glitch-text {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  position: relative;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #222;
+}
+
+.glitch-text::before {
+  left: 2px;
+  text-shadow: -1px 0 red;
+  clip: rect(24px, 550px, 90px, 0);
+  animation: glitch-anim-2 3s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+  left: -2px;
+  text-shadow: -1px 0 blue;
+  clip: rect(85px, 550px, 140px, 0);
+  animation: glitch-anim 2.5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% { clip: rect(15px, 9999px, 86px, 0); }
+  20% { clip: rect(32px, 9999px, 12px, 0); }
+  40% { clip: rect(76px, 9999px, 5px, 0); }
+  60% { clip: rect(9px, 9999px, 98px, 0); }
+  80% { clip: rect(54px, 9999px, 23px, 0); }
+  100% { clip: rect(43px, 9999px, 67px, 0); }
+}
+
+@keyframes glitch-anim-2 {
+  0% { clip: rect(65px, 9999px, 100px, 0); }
+  20% { clip: rect(3px, 9999px, 34px, 0); }
+  40% { clip: rect(87px, 9999px, 56px, 0); }
+  60% { clip: rect(12px, 9999px, 89px, 0); }
+  80% { clip: rect(45px, 9999px, 12px, 0); }
+  100% { clip: rect(78px, 9999px, 45px, 0); }
+}`
+      }
+    ];
+
+    const container = document.getElementById('grid-container');
+    let toastTimeout;
+
+    // クリップボードへのコピー関数
+    function copyToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-99999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showToast();
+      } catch (err) {
+        console.error('コピーに失敗しました', err);
+        alert('コピーに失敗しました。');
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    // トースト通知を表示
+    function showToast() {
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }
+
+    // 動的スタイルの挿入用要素
+    const styleSheet = document.createElement("style");
+    document.head.appendChild(styleSheet);
+
+    // 要素の生成とスタイルの適用
+    decorations.forEach(item => {
+      // スタイルシートにCSSを追加
+      styleSheet.textContent += item.css + "\n";
+
+      // カード要素
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      // タイトル
+      const h2 = document.createElement('h2');
+      h2.textContent = item.title;
+      
+      // プレビュー表示領域
+      const preview = document.createElement('div');
+      preview.className = 'preview';
+      preview.innerHTML = item.html;
+      
+      // コード表示・コピーボタン
+      const codeContainer = document.createElement('div');
+      codeContainer.className = 'code-container';
+      
+      const codeBtn = document.createElement('div');
+      codeBtn.className = 'code-btn';
+      codeBtn.textContent = item.css; 
+      
+      // クリックイベント
+      codeBtn.addEventListener('click', () => copyToClipboard(item.css));
+      
+      codeContainer.appendChild(codeBtn);
+      
+      card.appendChild(h2);
+      card.appendChild(preview);
+      card.appendChild(codeContainer);
+      
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>
