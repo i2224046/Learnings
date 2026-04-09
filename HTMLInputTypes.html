@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Input Types Cheat Sheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --text-muted: #666666;
+      --border-color: #cccccc;
+      --primary: #333333;
+      --primary-hover: #000000;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      margin: 0;
+      padding: 15px 10px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      margin: 0 0 5px 0;
+      color: #111827;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0;
+      padding: 12px;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+    }
+
+    .card h2 code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 0;
+      font-family: 'Roboto Mono', monospace;
+    }
+
+    .preview {
+      margin-bottom: 12px;
+      min-height: 35px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* デモ用 input の基本スタイル */
+    .preview input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="image"]):not([type="hidden"]) {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 0;
+      box-sizing: border-box;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .preview input:focus {
+      border-color: var(--primary);
+    }
+
+    .preview input[type="submit"],
+    .preview input[type="reset"],
+    .preview input[type="button"] {
+      padding: 6px 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background-color 0.2s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .preview input[type="reset"] {
+      background-color: #666666;
+    }
+    .preview input[type="reset"]:hover {
+      background-color: #444444;
+    }
+
+    .preview input[type="submit"]:hover,
+    .preview input[type="button"]:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .hidden-note {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+
+    .code-container {
+      margin-top: auto;
+    }
+
+    .code-btn {
+      background-color: #222222;
+      color: #eeeeee;
+      padding: 8px;
+      border-radius: 0;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      word-break: break-all;
+      position: relative;
+      border: 1px solid transparent;
+    }
+
+    .code-btn:hover {
+      background-color: #000000;
+      border-color: #666666;
+    }
+
+    .code-btn:active {
+      transform: scale(0.98);
+    }
+
+    .code-btn::before {
+      content: "📋";
+      margin-right: 8px;
+      opacity: 0.8;
+    }
+
+    /* トースト通知 */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #222222;
+      color: #fff;
+      text-align: center;
+      border-radius: 0;
+      padding: 14px 24px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      font-weight: 500;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>HTML Input Types</h1>
+      <p>主要なinput属性を網羅。黒いコードエリアをクリックしてコピーできます。</p>
+    </header>
+
+    <div class="grid" id="grid-container">
+      <!-- JSで要素がここに生成されます -->
+    </div>
+  </div>
+
+  <div id="toast">✅ コピーしました！</div>
+
+  <script>
+    // 全種類のinput typeとデモ用の追加属性
+    const inputTypes = [
+      { type: 'text', attr: 'placeholder="テキストを入力"' },
+      { type: 'password', attr: 'placeholder="パスワード"' },
+      { type: 'email', attr: 'placeholder="メールアドレス"' },
+      { type: 'number', attr: 'placeholder="数字（整数のみ）"' },
+      { type: 'number', attr: 'step="0.1" placeholder="数字（小数可）"' },
+      { type: 'tel', attr: 'placeholder="090-1234-5678"' },
+      { type: 'url', attr: 'placeholder="https://example.com"' },
+      { type: 'search', attr: 'placeholder="検索キーワード"' },
+      { type: 'date', attr: '' },
+      { type: 'time', attr: '' },
+      { type: 'datetime-local', attr: '' },
+      { type: 'month', attr: '' },
+      { type: 'week', attr: '' },
+      { type: 'color', attr: 'value="#3b82f6"' },
+      { type: 'checkbox', attr: 'checked' },
+      { type: 'radio', attr: 'name="sample_radio" checked' },
+      { type: 'range', attr: 'min="0" max="100" value="50"' },
+      { type: 'file', attr: 'accept="image/*"' },
+      { type: 'hidden', attr: 'value="secret_data"' },
+      { type: 'submit', attr: 'value="送信"' },
+      { type: 'reset', attr: 'value="リセット"' },
+      { type: 'button', attr: 'value="ボタン"' },
+      { type: 'image', attr: 'src="https://via.placeholder.com/80x30/3b82f6/fff?text=Submit" alt="送信画像"' }
+    ];
+
+    const container = document.getElementById('grid-container');
+    let toastTimeout;
+
+    // クリップボードへのコピー関数（iframe制限を考慮したレガシーフォールバック）
+    function copyToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-99999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showToast();
+      } catch (err) {
+        console.error('コピーに失敗しました', err);
+        alert('コピーに失敗しました。');
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    // トースト通知を表示
+    function showToast() {
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }
+
+    // 要素の生成
+    inputTypes.forEach(item => {
+      // HTMLコード文字列の生成
+      const attrsStr = item.attr ? ` ${item.attr}` : '';
+      const codeStr = `<input type="${item.type}"${attrsStr}>`;
+      
+      // カード要素
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      // タイトル
+      const h2 = document.createElement('h2');
+      h2.innerHTML = `<code>type="${item.type}"</code>`;
+      
+      // プレビュー表示領域
+      const preview = document.createElement('div');
+      preview.className = 'preview';
+      
+      if (item.type === 'hidden') {
+        const note = document.createElement('span');
+        note.className = 'hidden-note';
+        note.textContent = '(非表示要素のため画面上には表示されません)';
+        preview.appendChild(note);
+      } else {
+        // 実際のinput要素を挿入して動作を確認できるようにする
+        preview.innerHTML = codeStr;
+      }
+      
+      // コード表示・コピーボタン
+      const codeContainer = document.createElement('div');
+      codeContainer.className = 'code-container';
+      
+      const codeBtn = document.createElement('div');
+      codeBtn.className = 'code-btn';
+      // エスケープ処理（テキストコンテントにそのまま代入）
+      codeBtn.textContent = codeStr; 
+      
+      // クリックイベント
+      codeBtn.addEventListener('click', () => copyToClipboard(codeStr));
+      
+      codeContainer.appendChild(codeBtn);
+      
+      card.appendChild(h2);
+      card.appendChild(preview);
+      card.appendChild(codeContainer);
+      
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>
