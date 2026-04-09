@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Basic HTML Elements Cheat Sheet</title>
+  <title>HTML Elements Cheat Sheet - Extended</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #f5f5f5;
+      --bg-color: #f8f9fa;
       --card-bg: #ffffff;
-      --text-color: #222222;
-      --text-muted: #666666;
-      --border-color: #cccccc;
-      --primary: #333333;
-      --primary-hover: #000000;
+      --text-color: #333333;
+      --text-muted: #6c757d;
+      --border-color: #dee2e6;
+      --primary: #0d6efd;
+      --code-bg: #212529;
     }
 
     body {
@@ -28,204 +28,142 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
     }
 
     header {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border-color);
     }
 
     header h1 {
-      font-size: 2rem;
+      font-size: 2.2rem;
       margin: 0 0 10px 0;
-      color: #111827;
-      letter-spacing: 0.05em;
+      color: #1a1a1a;
     }
 
     header p {
       color: var(--text-muted);
-      font-size: 0.95rem;
-      margin: 0;
+      font-size: 1rem;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 20px;
     }
 
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 0;
-      padding: 16px;
-      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .card h2 {
       font-size: 1.1rem;
       margin-top: 0;
-      margin-bottom: 12px;
-      color: var(--primary);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 8px;
     }
 
+    .card h2 span {
+      font-size: 0.8rem;
+      font-weight: normal;
+      color: var(--text-muted);
+      background: #f0f0f0;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* プレビューエリア：できるだけブラウザ標準に近い表示にする */
     .preview {
-      margin-bottom: 16px;
-      padding: 16px;
-      min-height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      background-color: #fafafa;
-      border: 1px solid #eee;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #ffffff;
+      border: 1px dashed #ccc;
+      min-height: 60px;
       overflow-x: auto;
     }
 
-    /* プレビュー内の基本スタイル（リセットに近い形） */
-    .preview table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .preview th, .preview td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    .preview th {
-      background-color: #eee;
-    }
-    .preview hr {
-      width: 100%;
-      border: 0;
-      border-top: 1px solid #ccc;
-      margin: 10px 0;
-    }
-    .preview blockquote {
-      margin: 0;
-      padding: 10px 20px;
-      border-left: 4px solid #ccc;
-      background-color: #f9f9f9;
-      color: #555;
-    }
-    .preview pre {
-      background-color: #f0f0f0;
-      padding: 10px;
-      border: 1px solid #ccc;
-      margin: 0;
-      font-family: monospace;
-      white-space: pre-wrap;
-      width: 100%;
-    }
-    .preview details {
-      width: 100%;
-      border: 1px solid #ccc;
-      padding: 10px;
-      background-color: #fff;
-    }
-    .preview summary {
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .preview dl { margin: 0; }
-    .preview dt { font-weight: bold; margin-top: 10px; }
-    .preview dd { margin-left: 20px; color: #555; }
-    .preview kbd {
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      padding: 2px 5px;
-      font-family: monospace;
-      font-size: 0.9em;
-      box-shadow: 0 1px 1px rgba(0,0,0,0.2);
-    }
-    .preview mark {
-      background-color: #ffe066;
-      padding: 0 2px;
-    }
+    /* プレビュー内の「素の」スタイル調整（最低限の視認性確保のみ） */
+    .preview table { border-collapse: collapse; }
+    .preview th, .preview td { border: 1px solid #333; padding: 4px; }
+    .preview img { max-width: 100%; height: auto; }
 
     .code-container {
       margin-top: auto;
     }
 
     .code-btn {
-      background-color: #222222;
-      color: #eeeeee;
+      background-color: var(--code-bg);
+      color: #e9ecef;
       padding: 12px;
-      border-radius: 0;
+      border-radius: 6px;
       font-family: 'Roboto Mono', monospace;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: all 0.2s;
-      user-select: none;
-      word-break: break-all;
+      transition: background 0.2s;
       white-space: pre-wrap;
+      word-break: break-all;
       position: relative;
-      border: 1px solid transparent;
       text-align: left;
-      line-height: 1.4;
-      max-height: 250px;
+      line-height: 1.5;
+      max-height: 200px;
       overflow-y: auto;
+      border: none;
+      width: 100%;
     }
 
     .code-btn:hover {
       background-color: #000000;
-      border-color: #666666;
-    }
-
-    .code-btn:active {
-      transform: scale(0.99);
     }
 
     .code-btn::before {
-      content: "📋 コピー";
+      content: "CLICK TO COPY";
       display: block;
-      margin-bottom: 8px;
-      font-family: 'Noto Sans JP', sans-serif;
-      font-size: 0.75rem;
-      opacity: 0.7;
-      border-bottom: 1px solid #444;
-      padding-bottom: 4px;
+      font-size: 0.65rem;
+      color: #888;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    /* トースト通知 */
     #toast {
       visibility: hidden;
-      min-width: 250px;
-      background-color: #222222;
+      min-width: 200px;
+      background-color: #333;
       color: #fff;
       text-align: center;
-      border-radius: 0;
-      padding: 14px 24px;
+      border-radius: 4px;
+      padding: 12px;
       position: fixed;
       z-index: 1000;
       left: 50%;
-      bottom: 20px;
-      transform: translateX(-50%) translateY(20px);
-      font-weight: 500;
-      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+      bottom: 30px;
+      transform: translateX(-50%);
       opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
-      font-family: 'Noto Sans JP', sans-serif;
+      transition: opacity 0.3s, bottom 0.3s;
     }
 
     #toast.show {
       visibility: visible;
       opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      bottom: 50px;
     }
 
     @media (max-width: 600px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -233,187 +171,203 @@
 
   <div class="container">
     <header>
-      <h1>Basic HTML Elements</h1>
-      <p>初歩的で実用的なHTMLタグのチートシート</p>
+      <h1>HTML Elements Cheat Sheet</h1>
+      <p>基本から応用まで、コピーして使えるHTML構造サンプル</p>
     </header>
 
     <div class="grid" id="grid-container">
-      <!-- JSで要素がここに生成されます -->
+      <!-- JavaScriptでコンテンツが生成されます -->
     </div>
   </div>
 
-  <div id="toast">✅ HTMLをコピーしました！</div>
+  <div id="toast">コピーしました！</div>
 
   <script>
-    // 基本的なHTML要素のデータ定義
     const htmlElements = [
       {
+        title: "ハイパーリンク (a)",
+        category: "Inline",
+        html: `<a href="https://example.com" target="_blank" rel="noopener">外部サイトへのリンク</a>
+<br>
+<a href="mailto:info@example.com">メールを送信する</a>`
+      },
+      {
+        title: "見出し (h1 - h6)",
+        category: "Block",
+        html: `<h1>見出し 1</h1>
+<h2>見出し 2</h2>
+<h3>見出し 3</h3>`
+      },
+      {
+        title: "画像 (img)",
+        category: "Embedded",
+        html: `<img src="https://picsum.photos/200/100" alt="サンプル画像" width="200" height="100">`
+      },
+      {
+        title: "ボタン (button)",
+        category: "Form",
+        html: `<button type="button" onclick="alert('Hello!')">クリックしてね</button>
+<button type="button" disabled>無効なボタン</button>`
+      },
+      {
+        title: "テキスト入力 (input)",
+        category: "Form",
+        html: `<label for="name">名前:</label>
+<input type="text" id="name" placeholder="例：山田 太郎">
+<br><br>
+<input type="checkbox" id="check"> <label for="check">同意する</label>
+<input type="radio" name="r" id="r1"> <label for="r1">A</label>
+<input type="radio" name="r" id="r2"> <label for="r2">B</label>`
+      },
+      {
+        title: "ドロップダウン (select)",
+        category: "Form",
+        html: `<select name="fruits">
+  <option value="">選択してください</option>
+  <option value="apple">りんご</option>
+  <option value="orange">みかん</option>
+  <option value="grape">ぶどう</option>
+</select>`
+      },
+      {
+        title: "複数行テキスト (textarea)",
+        category: "Form",
+        html: `<textarea rows="4" cols="30" placeholder="メッセージを入力してください"></textarea>`
+      },
+      {
         title: "テーブル（表）",
+        category: "Table",
         html: `<table>
   <thead>
     <tr>
-      <th>見出し1</th>
-      <th>見出し2</th>
+      <th>項目</th>
+      <th>価格</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>データ1</td>
-      <td>データ2</td>
+      <td>りんご</td>
+      <td>100円</td>
     </tr>
     <tr>
-      <td>データ3</td>
-      <td>データ4</td>
+      <td>合計</td>
+      <td>100円</td>
     </tr>
   </tbody>
 </table>`
       },
       {
-        title: "水平線 (hr)",
-        html: `<p>上のテキスト</p>\n<hr>\n<p>下のテキスト</p>`
-      },
-      {
-        title: "引用 (blockquote)",
-        html: `<blockquote>
-  <p>吾輩は猫である。名前はまだ無い。</p>
-  <cite>— 夏目漱石</cite>
-</blockquote>`
-      },
-      {
-        title: "順序なしリスト (ul)",
-        html: `<ul>
-  <li>りんご</li>
-  <li>みかん
-    <ul>
-      <li>温州みかん</li>
-      <li>伊予柑</li>
-    </ul>
-  </li>
-  <li>ぶどう</li>
-</ul>`
-      },
-      {
-        title: "順序ありリスト (ol)",
-        html: `<ol>
-  <li>手順その１</li>
-  <li>手順その２</li>
-  <li>手順その３</li>
-</ol>`
-      },
-      {
         title: "定義リスト (dl)",
+        category: "List",
         html: `<dl>
+  <dt>用語</dt>
+  <dd>用語に対する説明文が入ります。</dd>
   <dt>HTML</dt>
-  <dd>HyperText Markup Languageの略。</dd>
-  <dt>CSS</dt>
-  <dd>Cascading Style Sheetsの略。</dd>
+  <dd>Webサイトの骨組みを作る言語。</dd>
 </dl>`
       },
       {
-        title: "折りたたみ要素 (details)",
+        title: "折りたたみ (details)",
+        category: "Interactive",
         html: `<details>
-  <summary>クリックして詳細を表示</summary>
-  <p>ここに隠されていた詳細テキストが表示されます。</p>
+  <summary>詳しく見る（クリック）</summary>
+  <p>ここに追加の情報が表示されます。</p>
 </details>`
       },
       {
-        title: "整形済みテキスト (pre / code)",
-        html: `<pre><code>function hello() {
-  console.log("Hello, World!");
-}</code></pre>`
+        title: "引用 (blockquote / cite)",
+        category: "Block",
+        html: `<blockquote cite="https://example.com">
+  <p>人間は考える葦である。</p>
+  <cite>— パスカル</cite>
+</blockquote>`
       },
       {
-        title: "キーボード入力 (kbd)",
-        html: `<p>保存するには <kbd>Ctrl</kbd> + <kbd>S</kbd> を押します。</p>`
+        title: "強調・ハイライト",
+        category: "Inline",
+        html: `<p><strong>強い強調</strong>、<em>斜体の強調</em>、<mark>マーカーでの強調</mark></p>`
       },
       {
-        title: "ハイライト (mark)",
-        html: `<p>この文章の<mark>重要な部分</mark>を強調します。</p>`
-      },
-      {
-        title: "打ち消し線 (s / del)",
-        html: `<p>通常価格 <del>¥1,000</del> → セール価格 <strong>¥800</strong></p>`
-      },
-      {
-        title: "ルビ・ふりがな (ruby)",
+        title: "ふりがな (ruby)",
+        category: "Inline",
         html: `<ruby>
   漢字<rt>かんじ</rt>
 </ruby>`
+      },
+      {
+        title: "進行状況 (progress)",
+        category: "Status",
+        html: `<label>進捗: </label>
+<progress value="70" max="100">70%</progress>`
+      },
+      {
+        title: "コード表示 (pre / code)",
+        category: "Block",
+        html: `<pre><code>body {
+  color: red;
+}</code></pre>`
+      },
+      {
+        title: "セマンティック区分 (nav / section)",
+        category: "Layout",
+        html: `<nav>
+  <a href="#">ホーム</a> | <a href="#">会社概要</a>
+</nav>
+<section>
+  <p>ここはセクション領域です。</p>
+</section>`
       }
     ];
 
     const container = document.getElementById('grid-container');
     let toastTimeout;
 
-    // クリップボードへのコピー関数
     function copyToClipboard(text) {
       const textArea = document.createElement("textarea");
       textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-99999px";
       document.body.appendChild(textArea);
       textArea.select();
-      
       try {
         document.execCommand('copy');
         showToast();
       } catch (err) {
-        console.error('コピーに失敗しました', err);
-        alert('コピーに失敗しました。');
+        console.error('Copy failed', err);
       }
-      
       document.body.removeChild(textArea);
     }
 
-    // トースト通知を表示
     function showToast() {
       const toast = document.getElementById("toast");
       toast.classList.add("show");
-      
       clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
         toast.classList.remove("show");
       }, 2000);
     }
 
-    // 要素の生成
     htmlElements.forEach(item => {
-      // カード要素
       const card = document.createElement('div');
       card.className = 'card';
       
-      // タイトル
       const h2 = document.createElement('h2');
-      h2.textContent = item.title;
+      h2.innerHTML = `${item.title} <span>${item.category}</span>`;
       
-      // プレビュー表示領域
       const preview = document.createElement('div');
       preview.className = 'preview';
+      preview.innerHTML = item.html;
       
-      // プレビュー用のラッパー要素を作成し、中にHTMLを挿入
-      const previewContent = document.createElement('div');
-      previewContent.style.width = '100%';
-      previewContent.innerHTML = item.html;
-      preview.appendChild(previewContent);
-      
-      // コード表示・コピーボタン
       const codeContainer = document.createElement('div');
       codeContainer.className = 'code-container';
       
-      const codeBtn = document.createElement('div');
+      const codeBtn = document.createElement('button');
       codeBtn.className = 'code-btn';
-      // エスケープ処理のため、textContentに代入
-      codeBtn.textContent = item.html; 
-      
-      // クリックイベント
+      codeBtn.textContent = item.html;
       codeBtn.addEventListener('click', () => copyToClipboard(item.html));
       
       codeContainer.appendChild(codeBtn);
-      
       card.appendChild(h2);
       card.appendChild(preview);
       card.appendChild(codeContainer);
-      
       container.appendChild(card);
     });
   </script>
