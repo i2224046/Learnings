@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Decoration Cheat Sheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --card-bg: #ffffff;
+      --text-color: #222222;
+      --text-muted: #666666;
+      --border-color: #cccccc;
+      --primary: #333333;
+      --primary-hover: #000000;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px 10px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0 0 10px 0;
+      color: #111827;
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0;
+      padding: 16px;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+
+    .preview {
+      margin-bottom: 16px;
+      padding: 16px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #fafafa;
+      border: 1px solid #eee;
+      position: relative;
+    }
+
+    /* デモ領域の要素のリセット */
+    .preview * {
+      box-sizing: border-box;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .code-container {
+      margin-top: auto;
+    }
+
+    .code-btn {
+      background-color: #222222;
+      color: #eeeeee;
+      padding: 12px;
+      border-radius: 0;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      word-break: break-all;
+      white-space: pre-wrap;
+      position: relative;
+      border: 1px solid transparent;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    .code-btn:hover {
+      background-color: #000000;
+      border-color: #666666;
+    }
+
+    .code-btn:active {
+      transform: scale(0.99);
+    }
+
+    .code-btn::before {
+      content: "📋 コピー";
+      display: block;
+      margin-bottom: 8px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      border-bottom: 1px solid #444;
+      padding-bottom: 4px;
+    }
+
+    /* トースト通知 */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #222222;
+      color: #fff;
+      text-align: center;
+      border-radius: 0;
+      padding: 14px 24px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      font-weight: 500;
+      box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    #toast.show {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>CSS Decorations</h1>
+      <p>テキスト、ボタン、フォームなどの実用的なモノトーン装飾一覧</p>
+    </header>
+
+    <div class="grid" id="grid-container">
+      <!-- JSで要素がここに生成されます -->
+    </div>
+  </div>
+
+  <div id="toast">✅ CSSをコピーしました！</div>
+
+  <script>
+    // 各種CSS装飾のデータ定義
+    const decorations = [
+      {
+        title: "テキスト：マーカー線",
+        html: `<span class="text-marker">重要なテキスト</span>`,
+        css: `.text-marker {
+  background: linear-gradient(transparent 60%, #d1d5db 60%);
+  font-weight: bold;
+  padding: 0 4px;
+}`
+      },
+      {
+        title: "テキスト：ソリッドシャドウ",
+        html: `<span class="text-shadow">レトロな影</span>`,
+        css: `.text-shadow {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 0px #9ca3af;
+}`
+      },
+      {
+        title: "テキスト：白抜き文字",
+        html: `<span class="text-outline">アウトライン</span>`,
+        css: `.text-outline {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 
+    1px 1px 0 #222, -1px -1px 0 #222,
+    1px -1px 0 #222, -1px 1px 0 #222;
+}`
+      },
+      {
+        title: "ボタン：ソリッド",
+        html: `<button class="btn-solid">送信する</button>`,
+        css: `.btn-solid {
+  background: #222;
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-solid:hover {
+  background: #555;
+}`
+      },
+      {
+        title: "ボタン：押し込みエフェクト",
+        html: `<button class="btn-push">クリック</button>`,
+        css: `.btn-push {
+  background: #fff;
+  color: #222;
+  border: 2px solid #222;
+  padding: 10px 24px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #222;
+  transition: all 0.1s;
+}
+.btn-push:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 #222;
+}`
+      },
+      {
+        title: "ボタン：ゴースト",
+        html: `<button class="btn-ghost">キャンセル</button>`,
+        css: `.btn-ghost {
+  background: transparent;
+  color: #666;
+  border: 1px solid #ccc;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover {
+  border-color: #222;
+  color: #222;
+}`
+      },
+      {
+        title: "フォーム：アンダーライン",
+        html: `<input type="text" class="input-line" placeholder="お名前を入力">`,
+        css: `.input-line {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  padding: 8px 4px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+  background: transparent;
+}
+.input-line:focus {
+  border-bottom-color: #222;
+}`
+      },
+      {
+        title: "フォーム：フォーカス強調",
+        html: `<input type="email" class="input-focus" placeholder="mail@example.com">`,
+        css: `.input-focus {
+  width: 100%;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+.input-focus:focus {
+  border-color: #222;
+  box-shadow: 2px 2px 0 #222;
+}`
+      },
+      {
+        title: "リスト：カスタムマーカー",
+        html: `<ul class="list-custom"><li>項目その１</li><li>項目その２</li></ul>`,
+        css: `.list-custom {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.list-custom li {
+  position: relative;
+  padding-left: 1.2em;
+  margin-bottom: 4px;
+}
+.list-custom li::before {
+  content: "■";
+  position: absolute;
+  left: 0;
+  color: #222;
+  font-size: 0.8em;
+  top: 0.1em;
+}`
+      },
+      {
+        title: "ボックス：ストライプ背景",
+        html: `<div class="box-stripe">斜めストライプ柄</div>`,
+        css: `.box-stripe {
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  font-weight: bold;
+  border: 1px solid #ddd;
+  background: repeating-linear-gradient(
+    -45deg,
+    #f9f9f9, #f9f9f9 10px,
+    #ffffff 10px, #ffffff 20px
+  );
+}`
+      },
+      {
+        title: "ボックス：ステッチ風",
+        html: `<div class="box-stitch">縫い目のような枠線</div>`,
+        css: `.box-stitch {
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  background: #f5f5f5;
+  border: 2px dashed #999;
+  outline: 1px solid #eee;
+  outline-offset: -6px;
+}`
+      },
+      {
+        title: "テーブル：モノトーン",
+        html: `<table class="table-mono"><tr><th>見出し</th><td>データ</td></tr><tr><th>見出し</th><td>データ</td></tr></table>`,
+        css: `.table-mono {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-mono th, .table-mono td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+.table-mono th {
+  background: #eee;
+  width: 40%;
+}`
+      }
+    ];
+
+    const container = document.getElementById('grid-container');
+    let toastTimeout;
+
+    // クリップボードへのコピー関数
+    function copyToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-99999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showToast();
+      } catch (err) {
+        console.error('コピーに失敗しました', err);
+        alert('コピーに失敗しました。');
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    // トースト通知を表示
+    function showToast() {
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }
+
+    // 動的スタイルの挿入用要素
+    const styleSheet = document.createElement("style");
+    document.head.appendChild(styleSheet);
+
+    // 要素の生成とスタイルの適用
+    decorations.forEach(item => {
+      // スタイルシートにCSSを追加
+      styleSheet.textContent += item.css + "\n";
+
+      // カード要素
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      // タイトル
+      const h2 = document.createElement('h2');
+      h2.textContent = item.title;
+      
+      // プレビュー表示領域
+      const preview = document.createElement('div');
+      preview.className = 'preview';
+      preview.innerHTML = item.html;
+      
+      // コード表示・コピーボタン
+      const codeContainer = document.createElement('div');
+      codeContainer.className = 'code-container';
+      
+      const codeBtn = document.createElement('div');
+      codeBtn.className = 'code-btn';
+      codeBtn.textContent = item.css; 
+      
+      // クリックイベント
+      codeBtn.addEventListener('click', () => copyToClipboard(item.css));
+      
+      codeContainer.appendChild(codeBtn);
+      
+      card.appendChild(h2);
+      card.appendChild(preview);
+      card.appendChild(codeContainer);
+      
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>
