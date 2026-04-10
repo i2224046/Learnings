@@ -21,13 +21,83 @@ function FormatHTMLPHP(text) {
     // 1. 改行コードを LF に統一
     text = text.replace(/\r\n|\r/g, "\n");
 
+    // ==========================================
+    // 【追加】インデントと不要な改行の初期化（リセット）
+    // ==========================================
+    // ① 全行の行頭・行末の空白（前回のインデントなど）を一度リセット
+    var rawLines = text.split("\n");
+    for (var l = 0; l < rawLines.length; l++) {
+        rawLines[l] = rawLines[l].replace(/^\s+|\s+$/g, "");
+    }
+    text = rawLines.join("\n");
+
+    // ② インライン要素の内部にある不要な改行を削除して1行に修復
+    // 再実行時に、一度崩れてしまった <label> や <a> などのタグとテキストの隙間を初期化する
+    var inlineWrapTags = "label|span|a|button|strong|b|i|em";
+    var wrapRegex = new RegExp("<(" + inlineWrapTags + ")\\b[^>]*>[\\s\\S]*?<\\/\\1>", "ig");
+    text = text.replace(wrapRegex, function(match) {
+        // 中にPHPコードが含まれている場合は安全のため改行を維持
+        if (match.indexOf("<?") !== -1) {
+            return match;
+        }
+        // タグ内部の改行をすべて削除してピッタリつなげる
+        return match.replace(/\n/g, "");
+    });
+
     // 2. タグ同士が連続している部分に改行を挿入
-    text = text.replace(/(>|\?>)\s*(<|<\?php|<\?=)/ig, "$1\n$2");
+    text = text.replace(/(>|\?>)(\s*)(<|<\?php|<\?=)/ig, function(match, p1, p2, p3, offset, string) {
+        var hasNewline = p2.indexOf('\n') !== -1;
+        
+        // 直前・直後の文字列を抽出
+        var prevStr = string.substring(Math.max(0, offset - 50), offset + p1.length);
+        var nextStartIndex = offset + p1.length + p2.length;
+        var nextStr = string.substring(nextStartIndex, Math.min(string.length, nextStartIndex + 50));
+        
+        // タグ名を取得
+        var prevTagMatch = prevStr.match(/<(\/)?([a-z0-9]+)[^>]*>$/i);
+        var nextTagMatch = nextStr.match(/^(<)(\/)?([a-z0-9]+)/i);
+
+        var prevTag = prevTagMatch ? prevTagMatch[2].toLowerCase() : "";
+        var nextTag = (nextTagMatch && nextTagMatch[3]) ? nextTagMatch[3].toLowerCase() : "";
+        
+        // 直前・直後のタグが閉じタグかどうかを判定
+        var prevIsClose = prevTagMatch ? !!prevTagMatch[1] : false;
+        var nextIsClose = nextTagMatch ? !!nextTagMatch[2] : false;
+        
+        // スペースを開けたくないインライン要素のリスト
+        var inlineTags = /^(label|input|span|a|img|button|strong|b|i|em|textarea|select|option)$/i;
+        // インライン要素を直接囲むことが多く、改行を避けたいブロック要素のリスト
+        var inlineContainers = /^(p|h[1-6]|li|td|th)$/i;
+
+        // パターン1: 両方がインライン要素の場合（例: <label><input> や </label><label>）
+        if (inlineTags.test(prevTag) && inlineTags.test(nextTag)) {
+            // 表示崩れを防ぐため、強制的に改行を削除してつなげる
+            return p1 + p3;
+        }
+
+        // パターン2: コンテナ開きタグ -> インライン要素（例: <p><label>）
+        if (inlineContainers.test(prevTag) && !prevIsClose && inlineTags.test(nextTag)) {
+            return p1 + p3;
+        }
+
+        // パターン3: インライン要素 -> コンテナ閉じタグ（例: </label></p>）
+        if (inlineTags.test(prevTag) && inlineContainers.test(nextTag) && nextIsClose) {
+            return p1 + p3;
+        }
+
+        // パターン4: インライン要素 -> <br> の場合は改行を削除してつなげる（例: </label><br>）
+        if (inlineTags.test(prevTag) && nextTag === "br") {
+            return p1 + p3;
+        }
+
+        // それ以外（ブロック要素など）は改行を入れる
+        return p1 + "\n" + p3;
+    });
 
     // 行ごとに分割
     var lines = text.split("\n");
     var indentLevel = 0;
-    var indentStr = "\t"; // 【変更】インデントをタブ文字に設定
+    var indentStr = "\t"; // インデントをタブ文字に設定
     var out = "";
 
     for (var i = 0; i < lines.length; i++) {
@@ -110,5 +180,6 @@ function FormatHTMLPHP(text) {
         indentLevel = Math.max(0, nextIndent);
     }
 
-    return out;
+    // 置換時に無駄な改行が増えないように末尾の改行を削って返す
+    return out.replace(/\n$/, "");
 }
