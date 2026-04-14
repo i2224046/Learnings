@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>電話対応フローチャート | インタラクティブ・アシスト</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Material Symbols Outlined (Google Font Icons) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+
+  <style>
+    /* 1. 全体デザイン・トーン＆マナー (CSS変数) */
+    :root {
+      --color-white: #FFFFFF;
+      --color-light-gray: #F9F9F9;
+      --color-black: #000000;
+      --color-text: #111111;
+      --color-sub: #767676;
+      --shadow-solid: 6px 6px 0px var(--color-black);
+      --shadow-solid-hover: 3px 3px 0px var(--color-black);
+      --shadow-solid-active: 0px 0px 0px var(--color-black);
+    }
+
+    /* Reset & Base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0; /* 形状: 完全な角ばったデザイン */
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: var(--color-light-gray);
+      color: var(--color-text);
+      line-height: 1.5;
+      height: 100dvh; /* スクロールなしで画面内に収める */
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Layout Structure */
+    .app-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Pane Common */
+    .pane-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+      color: var(--color-black);
+    }
+
+    /* Left Pane (Memo: 20%) */
+    .pane-left {
+      width: 20%;
+      min-width: 250px;
+      border-right: 4px solid var(--color-black);
+      background-color: var(--color-white);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+    }
+
+    .memo-textarea {
+      flex-grow: 1;
+      resize: none;
+      width: 100%;
+      border: 2px solid var(--color-black);
+      padding: 1rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      outline: none;
+      box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05);
+    }
+
+    .memo-textarea:focus {
+      border-width: 3px;
+      padding: calc(1rem - 1px);
+      background-color: var(--color-light-gray);
+    }
+
+    /* Center Pane (Main Content: 60%) */
+    .pane-center {
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow-y: auto;
+      background-color: var(--color-light-gray);
+    }
+
+    .layout-container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Right Pane (Actions: 20%) */
+    .pane-right {
+      width: 20%;
+      min-width: 250px;
+      border-left: 4px solid var(--color-black);
+      background-color: var(--color-white);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    /* Responsive (スマホ等での縦積み対応) */
+    @media (max-width: 900px) {
+      .app-container {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .pane-left, .pane-center, .pane-right {
+        width: 100%;
+        max-width: none;
+        border-right: none;
+        border-left: none;
+        border-bottom: 4px solid var(--color-black);
+      }
+      .pane-center {
+        order: 1;
+        min-height: 40vh;
+      }
+      .pane-right {
+        order: 2;
+      }
+      .pane-left {
+        order: 3;
+        min-height: 35vh;
+        border-bottom: none;
+      }
+    }
+
+    /* Components: Card */
+    .card {
+      background-color: var(--color-white);
+      border: 4px solid var(--color-black);
+      padding: 2.5rem 1.5rem;
+      box-shadow: var(--shadow-solid);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 250px;
+    }
+
+    /* Content Text */
+    .text-container {
+      width: 100%;
+    }
+
+    .text-speech {
+      font-size: clamp(1.4rem, 4.5vw, 2.2rem); /* 画面に収まるよう微調整 */
+      font-weight: 900;
+      color: var(--color-black);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      display: inline-block;
+      text-align: left;
+    }
+
+    /* Components: Buttons (Center Pane用に戻す) */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      border: 3px solid var(--color-black);
+      transition: all 0.1s ease-in-out;
+      box-shadow: 4px 4px 0px var(--color-black);
+      flex: 1 1 200px;
+      max-width: 350px;
+      word-break: keep-all;
+      text-align: center;
+    }
+
+    .btn:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px var(--color-black);
+    }
+
+    .btn:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0px 0px 0px var(--color-black);
+    }
+
+    .btn-primary {
+      background-color: var(--color-black);
+      color: var(--color-white);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-white);
+      color: var(--color-black);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-white);
+      color: var(--color-black);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--color-black);
+      color: var(--color-white);
+    }
+    
+    .btn-back {
+      background-color: transparent;
+      color: var(--color-sub);
+      border: 2px dashed var(--color-sub);
+      box-shadow: none;
+      flex: 1 1 100%;
+      max-width: 250px;
+      margin-top: 1rem;
+      font-size: 1rem;
+      padding: 0.8rem;
+    }
+
+    .btn-back:hover {
+      color: var(--color-black);
+      border-color: var(--color-black);
+      background-color: var(--color-white);
+      transform: translate(0, 0);
+      box-shadow: none;
+    }
+
+    /* Operation Box (Right Pane用) */
+    .operation-box {
+      background-color: var(--color-white);
+      border: 4px solid var(--color-black);
+      padding: 1.5rem;
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: var(--color-black);
+      box-shadow: 4px 4px 0px var(--color-black);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .operation-box .material-symbols-outlined {
+      font-size: 3rem;
+    }
+
+    .operation-empty {
+      color: var(--color-sub);
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* Icons */
+    .material-symbols-outlined {
+      vertical-align: middle;
+      font-size: 1.3em;
+      margin-bottom: 0.1em;
+    }
+
+    /* Animations */
+    @keyframes fadeInSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-content {
+      animation: fadeInSlideUp 0.2s ease-out forwards;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- 左ペイン: メモ (20%) -->
+    <aside class="pane-left">
+      <div class="pane-header">
+        <span class="material-symbols-outlined">edit_note</span>
+        メモ
+      </div>
+      <textarea id="memoTextarea" class="memo-textarea" placeholder="会社名、名前、用件などをメモ..."></textarea>
+    </aside>
+
+    <!-- 中央ペイン: セリフ表示 (60%) -->
+    <main class="pane-center">
+      <div class="layout-container" id="mainContent">
+        <!-- JSでテキストとボタンが生成されます -->
+      </div>
+    </main>
+
+    <!-- 右ペイン: 物理操作 (20%) -->
+    <aside class="pane-right">
+      <div class="pane-header">
+        <span class="material-symbols-outlined">touch_app</span>
+        物理操作
+      </div>
+      <div id="operationContent" style="display: flex; flex-direction: column; flex-grow: 1;">
+        <!-- JSで操作指示が生成されます -->
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // 質問とセリフを統合し、手数を減らしたデータ構造
+    const flowData = {
+      "receive": {
+        text: "「お電話ありがとうございます。\n〇〇の〇〇でございます。」",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>check_circle</span> 名前を聞き取れた", next: "confirm_name", style: "primary" },
+          { label: "<span class='material-symbols-outlined'>help</span> 聞き取れない・名乗らない", next: "ask_name", style: "secondary" }
+        ]
+      },
+      "ask_name": {
+        text: "「失礼ですが、お名前を\n（もう一度）伺ってもよろしいでしょうか？」",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>check_circle</span> 名前を聞き取れた", next: "confirm_name", style: "primary" }
+        ]
+      },
+      "confirm_name": {
+        text: "「〇〇様でございますね。\nいつも大変お世話になっております。」",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>person</span> 人を訪ねてきた", next: "hold_person", style: "primary" },
+          { label: "<span class='material-symbols-outlined'>chat_bubble</span> その他の用件", next: "hold_other", style: "primary" },
+          { label: "<span class='material-symbols-outlined'>help</span> 用件が聞き取れない", next: "ask_business", style: "secondary" }
+        ]
+      },
+      "ask_business": {
+        text: "「失礼ですが、もう一度\n伺ってもよろしいでしょうか？」",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>person</span> 人を訪ねてきた", next: "hold_person", style: "primary" },
+          { label: "<span class='material-symbols-outlined'>chat_bubble</span> その他の用件", next: "hold_other", style: "primary" }
+        ]
+      },
+      "hold_person": {
+        text: "「（△△）でございますね。\n少々お待ちくださいませ。」",
+        operation: "<span class='material-symbols-outlined'>pause_circle</span><br>保留ボタンを押す",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>how_to_reg</span> 在席（つなぐ）", next: "done", style: "primary" },
+          { label: "<span class='material-symbols-outlined'>event_busy</span> 不在・対応不可", next: "absent", style: "secondary" }
+        ]
+      },
+      "hold_other": {
+        text: "「（△△）の件でございますね。\n少々お待ちくださいませ。」",
+        operation: "<span class='material-symbols-outlined'>pause_circle</span><br>保留ボタンを押す",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>how_to_reg</span> 在席（つなぐ／対応）", next: "done", style: "primary" },
+          { label: "<span class='material-symbols-outlined'>event_busy</span> 不在・対応不可", next: "absent", style: "secondary" }
+        ]
+      },
+      "absent": {
+        text: "「申し訳ございません。\n（担当者）はあいにく〇〇（外出・会議・お休み）しております。\n」",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>call_end</span> 電話を切る", next: "closing", style: "primary" }
+        ]
+      },
+      "closing": {
+        text: "「承知いたしました。\nそれでは、私〇〇が承りました。\n\nお電話ありがとうございました。\n失礼いたします。」",
+        operation: "<span class='material-symbols-outlined'>call_end</span><br>相手が切ったのを確認してから切る",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>task_alt</span> 対応完了", next: "done", style: "primary" }
+        ]
+      },
+      "done": {
+        text: "電話対応完了",
+        buttons: [
+          { label: "<span class='material-symbols-outlined'>refresh</span> 最初の画面に戻る", next: "receive", style: "primary", reset: true }
+        ]
+      }
+    };
+
+    const mainContent = document.getElementById('mainContent');
+    const operationContent = document.getElementById('operationContent');
+    const memoTextarea = document.getElementById('memoTextarea');
+    
+    // 状態の履歴を管理する配列
+    let historyStack = [];
+    let currentStateId = null;
+
+    // 状態をレンダリングする関数
+    function renderState(stateId, isBacking = false) {
+      const state = flowData[stateId];
+      if (!state) return;
+
+      currentStateId = stateId;
+
+      // ボタン群の生成
+      let buttonsHtml = state.buttons.map(btn => `
+        <button class="btn btn-${btn.style}" onclick="handleButtonClick('${btn.next}', ${btn.reset || false})">
+          ${btn.label}
+        </button>
+      `).join('');
+
+      // 履歴がある（最初の画面ではない）場合は「戻る」ボタンを追加
+      if (historyStack.length > 0) {
+        buttonsHtml += `
+          <button class="btn btn-back" onclick="goBack()">
+            <span class="material-symbols-outlined">arrow_back</span> 1つ前に戻る
+          </button>
+        `;
+      }
+
+      // 中央ペイン（セリフとボタン）の更新
+      mainContent.innerHTML = `
+        <div class="card animate-content">
+          <div class="text-container">
+            <div class="text-speech">${state.text}</div>
+          </div>
+        </div>
+        <div class="button-group animate-content" style="animation-delay: 0.05s;">
+          ${buttonsHtml}
+        </div>
+      `;
+
+      // 右ペイン（物理操作）の更新
+      if (state.operation) {
+        operationContent.innerHTML = `
+          <div class="operation-box animate-content" style="animation-delay: 0.1s;">
+            ${state.operation}
+          </div>
+        `;
+      } else {
+        operationContent.innerHTML = `
+          <div class="operation-empty animate-content" style="animation-delay: 0.1s;">
+            現在必要な<br>物理操作はありません
+          </div>
+        `;
+      }
+    }
+
+    // 次へ進むボタンクリック時のハンドラー
+    window.handleButtonClick = function(nextStateId, reset = false) {
+      if (reset) {
+        historyStack = []; // 履歴をクリア
+      } else {
+        historyStack.push(currentStateId); // 現在の状態を履歴に保存
+      }
+      renderState(nextStateId);
+    };
+
+    // 戻るボタンクリック時のハンドラー
+    window.goBack = function() {
+      if (historyStack.length > 0) {
+        const prevStateId = historyStack.pop(); // 1つ前の状態を取り出す
+        renderState(prevStateId, true);
+      }
+    };
+
+    // 初期化：アクセスした瞬間に着信画面を描画
+    document.addEventListener('DOMContentLoaded', () => {
+      renderState('receive');
+
+      // メモ欄のデータを復元 (リロードしても消えないようにする)
+      const savedMemo = localStorage.getItem('telephone_memo');
+      if (savedMemo) {
+        memoTextarea.value = savedMemo;
+      }
+    });
+
+    // メモ欄の入力時に自動保存する
+    memoTextarea.addEventListener('input', (e) => {
+      localStorage.setItem('telephone_memo', e.target.value);
+    });
+
+  </script>
+</body>
+</html>
