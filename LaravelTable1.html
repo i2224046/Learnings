@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel アプリケーション開発ガイド（予定表機能の作成）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-white: #FFFFFF;
+            --color-bg-light: #F9F9F9;
+            --color-black: #111111;
+            --color-border: #000000;
+            --color-grey: #767676;
+            --color-code-bg: #222222;
+            --shadow-solid: 4px 4px 0px rgba(0, 0, 0, 1);
+            --shadow-active: 1px 1px 0px rgba(0, 0, 0, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-radius: 0 !important; /* 徹底的な角ばり */
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--color-bg-light);
+            color: var(--color-black);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* タイポグラフィ */
+        h1 {
+            font-size: 2rem;
+            border-bottom: 4px solid var(--color-border);
+            padding-bottom: 10px;
+            margin-bottom: 40px;
+            display: inline-block;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-left: 8px solid var(--color-border);
+            padding-left: 15px;
+            margin: 40px 0 20px;
+            background-color: var(--color-white);
+            padding-top: 5px;
+            padding-bottom: 5px;
+            box-shadow: var(--shadow-solid);
+            border: 2px solid var(--color-border);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 30px 0 15px;
+            text-decoration: underline;
+            text-underline-offset: 5px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        /* カード・コンテナ */
+        .card {
+            background-color: var(--color-white);
+            border: 2px solid var(--color-border);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-solid);
+        }
+
+        /* テーブル */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--color-white);
+            border: 2px solid var(--color-border);
+        }
+
+        th {
+            background-color: var(--color-black);
+            color: var(--color-white);
+            text-align: left;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        td {
+            padding: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--color-bg-light);
+        }
+
+        /* コードブロック */
+        pre {
+            background-color: var(--color-code-bg);
+            color: #E0E0E0;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 2px solid var(--color-border);
+            box-shadow: var(--shadow-solid);
+        }
+
+        code {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .inline-code {
+            background-color: #EEE;
+            padding: 2px 5px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: bold;
+        }
+
+        /* リスト */
+        .list-styled {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .list-styled li {
+            margin-bottom: 10px;
+        }
+
+        /* ステップ表示 */
+        .step-badge {
+            display: inline-block;
+            background-color: var(--color-black);
+            color: var(--color-white);
+            padding: 4px 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* エラーセクション */
+        .error-box {
+            border: 2px solid var(--color-border);
+            background-color: var(--color-white);
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .error-title {
+            color: var(--color-black);
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-title::before {
+            content: "⚠️";
+            margin-right: 10px;
+        }
+
+        /* ボタン (プレビュー用) */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--color-black);
+            color: var(--color-white);
+            text-decoration: none;
+            border: 2px solid var(--color-black);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--color-white);
+            color: var(--color-black);
+            box-shadow: var(--shadow-solid);
+            transform: translate(-2px, -2px);
+        }
+
+        .btn:active {
+            box-shadow: var(--shadow-active);
+            transform: translate(0, 0);
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Laravel アプリケーション開発ガイド</h1>
+        <p class="card" style="background-color: var(--color-black); color: var(--color-white); box-shadow: none;">
+            このドキュメントは、Laravelを用いて「予定表（スケジュール）」を管理する機能を作成する過程をまとめたテクニカルガイドです。
+        </p>
+    </header>
+
+    <section id="concepts">
+        <h2>1. 登場する主要な概念</h2>
+        <div class="card">
+            <p>Laravel開発の土台となる重要なキーワードです。</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>概念</th>
+                            <th>役割・説明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>MVC パターン</strong></td>
+                            <td>View(見た目)、Controller(司令官)、Model(DB窓口)に役割を分ける設計。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Routing</strong></td>
+                            <td>どのURLでどの処理を呼び出すかを決める「地図」。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Migration</strong></td>
+                            <td>プログラムで管理するデータベースの「設計図」。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mass Assignment 保護</strong></td>
+                            <td>予期せぬデータ書き込みを防ぐ。Modelの <code class="inline-code">$fillable</code> で設定。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CSRF 対策</strong></td>
+                            <td>なりすまし送信を防ぐ。フォームに <code class="inline-code">@csrf</code> を書くだけで有効化。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tailwind CSS</strong></td>
+                            <td>class名で直接デザインを指定するモダンなCSSフレームワーク。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="artisan">
+        <h2>2. 使用する Artisan コマンド一覧</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>コマンド</th>
+                        <th>役割・説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code class="inline-code">php artisan make:model Schedule -m</code></td>
+                        <td>モデルと同時にマイグレーションファイルを作成します。</td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline-code">php artisan migrate</code></td>
+                        <td>設計図を実行し、データベースにテーブルを作成します。</td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline-code">php artisan make:controller ScheduleController</code></td>
+                        <td>司令官となるコントローラーを作成します。</td>
+                    </tr>
+                    <tr>
+                        <td><code class="inline-code">php artisan migrate:fresh</code></td>
+                        <td>DBを空にして最初からマイグレーションをやり直します。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="files">
+        <h2>3. 登場するファイルと役割</h2>
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ファイルパス</th>
+                            <th>役割・概要</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code class="inline-code">routes/web.php</code></td>
+                            <td>URLと処理の紐付け（ルーティング）。</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">resources/views/dashboard.blade.php</code></td>
+                            <td>HTMLとデザイン（ビュー）。データの表示やフォーム。</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">database/migrations/xxxx_create_schedules_table.php</code></td>
+                            <td>DBテーブルの構造定義（マイグレーション）。</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">app/Models/Schedule.php</code></td>
+                            <td>データの保存・取得の窓口（モデル）。</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">app/Http/Controllers/ScheduleController.php</code></td>
+                            <td>ビジネスロジックの実行（コントローラー）。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="steps">
+        <h2>4. やりたいこと別：具体的な作業手順</h2>
+
+        <div class="card">
+            <span class="step-badge">Step 1</span>
+            <h3>テーブルのデザイン（Tailwind CSS）</h3>
+            <p>枠線を引き、余白を調整します。</p>
+            <pre><code>&lt;!-- resources/views/dashboard.blade.php --&gt;
+&lt;table class="border-collapse"&gt;
+    &lt;tr&gt;
+        &lt;td class="border px-4 py-2"&gt;データ&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+        </div>
+
+        <div class="card">
+            <span class="step-badge">Step 2</span>
+            <h3>DBの設計図と窓口の作成</h3>
+            <p>1. マイグレーションファイルに項目を追記します。</p>
+            <pre><code>// database/migrations/...
+public function up() {
+    Schema::create('schedules', function (Blueprint $table) {
+        $table->id();
+        $table->string('time');
+        $table->text('memo');
+        $table->foreignId('user_id');
+        $table->timestamps();
+    });
+}</code></pre>
+            <p>2. モデルで保存を許可します。</p>
+            <pre><code>// app/Models/Schedule.php
+protected $fillable = ['user_id', 'time', 'memo'];</code></pre>
+        </div>
+
+        <div class="card">
+            <span class="step-badge">Step 3</span>
+            <h3>保存処理の実装（Controller）</h3>
+            <pre><code>// app/Http/Controllers/ScheduleController.php
+public function store(Request $request) {
+    Schedule::create([
+        'user_id' => $request->user()->id,
+        'time'    => $request->time,
+        'memo'    => $request->memo,
+    ]);
+    return back();
+}</code></pre>
+        </div>
+
+        <div class="card">
+            <span class="step-badge">Step 4</span>
+            <h3>ルーティングの設定</h3>
+            <pre><code>// routes/web.php
+use App\Http\Controllers\ScheduleController;
+
+Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+
+Route::get('/dashboard', function () {
+    $schedules = Schedule::where('user_id', auth()->id())->get();
+    return view('dashboard', ['schedules' => $schedules]);
+})->middleware(['auth']);</code></pre>
+        </div>
+
+        <div class="card">
+            <span class="step-badge">Step 5</span>
+            <h3>画面への実装（Blade）</h3>
+            <p>フォームに <code class="inline-code">@csrf</code> を忘れずに。</p>
+            <pre><code>&lt;form action="/schedules" method="POST"&gt;
+    @csrf
+    &lt;input type="time" name="time"&gt;
+    &lt;input type="text" name="memo"&gt;
+    &lt;button type="submit"&gt;追加&lt;/button&gt;
+&lt;/form&gt;
+
+@foreach($schedules as $schedule)
+    &lt;tr&gt;
+        &lt;td&gt;{{ $schedule->time }}&lt;/td&gt;
+        &lt;td&gt;{{ $schedule->memo }}&lt;/td&gt;
+    &lt;/tr&gt;
+@endforeach</code></pre>
+        </div>
+    </section>
+
+    <section id="errors">
+        <h2>5. よくあるエラーと対処法</h2>
+        
+        <div class="error-box">
+            <div class="error-title">Undefined variable $schedules</div>
+            <p><strong>原因:</strong> Controllerまたはweb.phpからViewにデータを渡せていない、あるいは変数名が間違っています。</p>
+            <p><strong>対策:</strong> <code class="inline-code">view('dashboard', ['schedules' => $schedules])</code> の第2引数を確認してください。</p>
+        </div>
+
+        <div class="error-box">
+            <div class="error-title">419 | PAGE EXPIRED</div>
+            <p><strong>原因:</strong> フォーム送信時にCSRFトークンが送られていません。</p>
+            <p><strong>対策:</strong> <code class="inline-code">&lt;form&gt;</code> の直後に <code class="inline-code">@csrf</code> を追記します。</p>
+        </div>
+
+        <div class="error-box">
+            <div class="error-title">Table schedules has no column named ...</div>
+            <p><strong>原因:</strong> マイグレーション実行後に項目を追加したが、DBに反映されていません。</p>
+            <p><strong>対策:</strong> <code class="inline-code">php artisan migrate:fresh</code> でDBを再構築します。</p>
+        </div>
+    </section>
+
+    <footer style="margin-top: 80px; text-align: center; color: var(--color-grey); font-size: 0.8rem;">
+        <p>&copy; 2024 Laravel Development Guide. Built with Monotone Solid Style.</p>
+    </footer>
+</div>
+
+</body>
+</html>
