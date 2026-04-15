@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tailwind CSS Cheat Sheet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 前提条件: 見やすいようにfont-sizeを大きく設定 */
+    html {
+      /* スマホ等の狭い画面で崩れすぎないようベースは120%に、PC等広い画面で200%になるよう調整しています */
+      font-size: 120%;
+    }
+    @media (min-width: 1024px) {
+      html { font-size: 200%; }
+    }
+
+    /* コピー可能なテキスト用のスタイル */
+    .copyable {
+      cursor: pointer;
+      border-bottom: 1px dashed currentColor;
+      transition: opacity 0.2s, background-color 0.2s;
+    }
+    .copyable:hover {
+      opacity: 0.6;
+    }
+    .copyable:active {
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans pb-20">
+
+  <!-- 修正点: コンテンツが多い場合に画面上部が見きれるのを防ぐため justify-center を削除しました -->
+  <div class="flex flex-col min-h-screen mx-4 md:mx-10 py-10 space-y-16">
+
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-black text-cyan-600 mb-2">Tailwind CSS Cheat Sheet</h1>
+      <p class="text-sm text-slate-500">記事の知識 ＋ 実務で役立つ追加知識(✨マーク)を統合したチートシート</p>
+      
+      <!-- コピー機能のガイド -->
+      <div class="mt-4 inline-flex items-center gap-2 bg-pink-50 text-pink-600 text-xs font-bold px-4 py-2 rounded-full border border-pink-100">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <span>点線下線のクラス名をクリックするとコピーできます</span>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         🌱 背景
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> 背景 (Background)
+      </h2>
+      <div class="space-y-6">
+        
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">1. 背景色を設定する</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+            <p class="p-2 border border-dashed">backgroundColor未設定</p>
+            <p class="p-2 bg-cyan-500 text-white"><code class="copyable font-mono" onclick="copyToClipboard('bg-cyan-500', event)">bg-cyan-500</code> を設定</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">2. 背景色の不透明度を設定する</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+            <p class="p-2 bg-cyan-500 text-white"><code class="copyable font-mono" onclick="copyToClipboard('bg-cyan-500', event)">bg-cyan-500</code> (100%)</p>
+            <p class="p-2 bg-cyan-500/50"><code class="copyable font-mono" onclick="copyToClipboard('bg-cyan-500/50', event)">bg-cyan-500/50</code> (50%)</p>
+            <p class="p-2 bg-cyan-500/30"><code class="copyable font-mono" onclick="copyToClipboard('bg-cyan-500/30', event)">bg-cyan-500/30</code> (30%)</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-yellow-400 pl-2 flex items-center">
+            3. グラデーションを設定する <span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">✨追加知識</span>
+          </h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+            <div class="h-12 w-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded flex items-center justify-center text-white">
+              <code class="copyable font-mono" onclick="copyToClipboard('bg-gradient-to-r from-cyan-500 to-blue-500', event)">bg-gradient-to-r from-cyan-500 to-blue-500</code>
+            </div>
+            <div class="h-12 w-full bg-gradient-to-br from-fuchsia-500 via-red-500 to-orange-400 rounded flex flex-col items-center justify-center text-white text-xs">
+              <code class="copyable font-mono mb-1" onclick="copyToClipboard('bg-gradient-to-br from-fuchsia-500 via-red-500 to-orange-400', event)">bg-gradient-to-br from-fuchsia-500 via-... to-...</code>
+              <span>via-... で中間色も指定可能</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==========================================
+         🌱 文字
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> 文字 (Typography)
+      </h2>
+      <div class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">1. 文字色を設定する</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+              <p class="">textColor未設定</p>
+              <p class="text-red-500"><code class="copyable font-mono" onclick="copyToClipboard('text-red-500', event)">text-red-500</code> を設定</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">2. 文字色の不透明度を設定する</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+              <p class="text-red-500"><code class="copyable font-mono" onclick="copyToClipboard('text-red-500', event)">text-red-500</code> (100%)</p>
+              <p class="text-red-500/50"><code class="copyable font-mono" onclick="copyToClipboard('text-red-500/50', event)">text-red-500/50</code> (50%)</p>
+              <p class="text-red-500/30"><code class="copyable font-mono" onclick="copyToClipboard('text-red-500/30', event)">text-red-500/30</code> (30%)</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">3. 文字サイズを設定する</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-2">
+            <p class="bg-cyan-100 text-xs p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-xs', event)">text-xs</code> (0.75rem)</p>
+            <p class="bg-cyan-200 text-base p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-base', event)">text-base</code> (1rem)</p>
+            <p class="bg-cyan-300 text-lg p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-lg', event)">text-lg</code> (1.125rem)</p>
+            <p class="bg-cyan-400 text-xl p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-xl', event)">text-xl</code> (1.25rem)</p>
+            <p class="bg-cyan-500 text-2xl p-1 text-white"><code class="copyable font-mono" onclick="copyToClipboard('text-2xl', event)">text-2xl</code> (1.5rem)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">4. 文字の高さ (line-height) を設定</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+              <p class="bg-cyan-100 leading-3"><code class="copyable font-mono" onclick="copyToClipboard('leading-3', event)">leading-3</code> (.75rem)</p>
+              <p class="bg-cyan-200 leading-4"><code class="copyable font-mono" onclick="copyToClipboard('leading-4', event)">leading-4</code> (1rem)</p>
+              <p class="bg-cyan-300 leading-5"><code class="copyable font-mono" onclick="copyToClipboard('leading-5', event)">leading-5</code> (1.25rem)</p>
+              <p class="bg-cyan-400 leading-6"><code class="copyable font-mono" onclick="copyToClipboard('leading-6', event)">leading-6</code> (1.5rem)</p>
+              <p class="bg-cyan-500 leading-7 text-white"><code class="copyable font-mono" onclick="copyToClipboard('leading-7', event)">leading-7</code> (1.75rem)</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">5. 文字の太さを設定する</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+              <p class="font-thin"><code class="copyable font-mono" onclick="copyToClipboard('font-thin', event)">font-thin</code> (100)</p>
+              <p class="font-light"><code class="copyable font-mono" onclick="copyToClipboard('font-light', event)">font-light</code> (300)</p>
+              <p class="font-normal"><code class="copyable font-mono" onclick="copyToClipboard('font-normal', event)">font-normal</code> (400)</p>
+              <p class="font-bold"><code class="copyable font-mono" onclick="copyToClipboard('font-bold', event)">font-bold</code> (700)</p>
+              <p class="font-black"><code class="copyable font-mono" onclick="copyToClipboard('font-black', event)">font-black</code> (900)</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">6. 文字の配置(左右)を設定する</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+            <p class="text-left bg-gray-100 p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-left', event)">text-left</code></p>
+            <p class="text-center bg-gray-100 p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-center', event)">text-center</code></p>
+            <p class="text-right bg-gray-100 p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-right', event)">text-right</code></p>
+            <p class="text-justify bg-gray-100 p-1 w-2/3"><code class="copyable font-mono" onclick="copyToClipboard('text-justify', event)">text-justify</code>: 文章が複数行に渡る場合、左右の端がピシッと揃うように調整されます。</p>
+            <p class="text-start bg-gray-100 p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-start', event)">text-start</code></p>
+            <p class="text-end bg-gray-100 p-1"><code class="copyable font-mono" onclick="copyToClipboard('text-end', event)">text-end</code></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">7. 数値表示設定 (等幅)</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+              <!-- 修正点: 比較対象を用意して効果をわかりやすくしました -->
+              <div class="flex gap-8">
+                <div>
+                  <p class="text-xs text-gray-500 mb-1">未設定</p>
+                  <p class="bg-gray-100 tracking-widest">1111111</p>
+                  <p class="bg-gray-100 tracking-widest">8888888</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('tabular-nums', event)">tabular-nums</code></p>
+                  <p class="tabular-nums bg-gray-100 tracking-widest">1111111</p>
+                  <p class="tabular-nums bg-gray-100 tracking-widest">8888888</p>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 mt-2">※フォントの都合で1などの数字が細い場合でも、強制的に同じ幅を持たせて縦を揃えます。</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-yellow-400 pl-2 flex items-center">
+              文字の装飾 <span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">✨追加知識</span>
+            </h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-sm">
+              <p class="underline decoration-cyan-500 decoration-2"><code class="copyable font-mono" onclick="copyToClipboard('underline decoration-cyan-500 decoration-2', event)">underline decoration-cyan-500 decoration-2</code></p>
+              <p class="line-through text-gray-500"><code class="copyable font-mono" onclick="copyToClipboard('line-through', event)">line-through</code> (打ち消し線)</p>
+              <p class="italic"><code class="copyable font-mono" onclick="copyToClipboard('italic', event)">italic</code> (斜体)</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">8. 省略と改行を設定する (Line Clamp)</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-4 text-sm w-full max-w-sm">
+            <div>
+              <p class="font-black text-xs text-cyan-600 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('line-clamp-1', event)">line-clamp-1</code> (1行目で省略)</p>
+              <p class="line-clamp-1 bg-gray-100 p-2">ああああああああああああああああああああああああああああああああああああああああ</p>
+            </div>
+            <div>
+              <p class="font-black text-xs text-cyan-600 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('line-clamp-2', event)">line-clamp-2</code> (2行目で省略)</p>
+              <p class="line-clamp-2 bg-gray-100 p-2">
+                あああああああああああああああああああああああああああああああああああああああ
+                いいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいいい
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==========================================
+         🌱 margin/padding
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> 余白 (Margin / Padding)
+      </h2>
+      <div class="space-y-6">
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-xs font-bold text-slate-700">
+          
+          <!-- Margin & Padding -->
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">1. 四方 (m, p)</p>
+            <div class="bg-cyan-200 m-2 border border-cyan-400"><div class="p-2 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('m-2', event)">m-2</code></div></div>
+            <div class="bg-rose-200 p-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('p-2', event)">p-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">2. 上部 (mt, pt)</p>
+            <div class="bg-cyan-200 mt-2 border border-cyan-400"><div class="p-1 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('mt-2', event)">mt-2</code></div></div>
+            <div class="bg-rose-200 pt-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('pt-2', event)">pt-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">3. 右部 (mr, pr)</p>
+            <div class="bg-cyan-200 mr-2 border border-cyan-400"><div class="p-1 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('mr-2', event)">mr-2</code></div></div>
+            <div class="bg-rose-200 pr-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('pr-2', event)">pr-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">4. 下部 (mb, pb)</p>
+            <div class="bg-cyan-200 mb-2 border border-cyan-400"><div class="p-1 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('mb-2', event)">mb-2</code></div></div>
+            <div class="bg-rose-200 pb-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('pb-2', event)">pb-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">5. 左部 (ml, pl)</p>
+            <div class="bg-cyan-200 ml-2 border border-cyan-400"><div class="p-1 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('ml-2', event)">ml-2</code></div></div>
+            <div class="bg-rose-200 pl-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('pl-2', event)">pl-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">6. 左右 (mx, px)</p>
+            <div class="bg-cyan-200 mx-2 border border-cyan-400"><div class="p-1 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('mx-2', event)">mx-2</code></div></div>
+            <div class="bg-rose-200 px-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('px-2', event)">px-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center">
+            <p class="mb-2">7. 上下 (my, py)</p>
+            <div class="bg-cyan-200 my-2 border border-cyan-400"><div class="p-1 bg-white"><code class="copyable font-mono" onclick="copyToClipboard('my-2', event)">my-2</code></div></div>
+            <div class="bg-rose-200 py-2 border border-rose-400 mt-2"><div class="bg-white"><code class="copyable font-mono" onclick="copyToClipboard('py-2', event)">py-2</code></div></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center justify-center overflow-hidden">
+            <p class="mb-2">8. ネガティブ (-m)</p>
+            <div class="bg-cyan-100 w-full flex justify-center">
+              <div class="bg-cyan-400 -mt-2 p-1 border border-cyan-600 text-[0.5rem] text-white"><code class="copyable font-mono" onclick="copyToClipboard('-mt-2', event)">-mt-2</code> (食い込む)</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">9. 要素間の間隔 (Space)</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-4 text-sm">
+              <div>
+                <p class="text-xs text-gray-500 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('space-x-4', event)">space-x-4</code> (左右の間隔)</p>
+                <div class="flex bg-gray-50 space-x-4 p-2 border border-dashed">
+                  <div class="h-8 w-8 bg-cyan-200 flex items-center justify-center">1</div>
+                  <div class="h-8 w-8 bg-cyan-200 flex items-center justify-center">2</div>
+                  <div class="h-8 w-8 bg-cyan-200 flex items-center justify-center">3</div>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('space-y-4', event)">space-y-4</code> (上下の間隔)</p>
+                <div class="flex flex-col bg-gray-50 space-y-4 p-2 border border-dashed">
+                  <div class="h-6 w-full bg-cyan-200 flex items-center justify-center">1</div>
+                  <div class="h-6 w-full bg-cyan-200 flex items-center justify-center">2</div>
+                  <div class="h-6 w-full bg-cyan-200 flex items-center justify-center">3</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">10. box-sizing</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-4 text-xs">
+              <div class="bg-cyan-100 box-border w-48 p-4 border-4 border-sky-300">
+                <p class="bg-white p-1 text-center"><code class="copyable font-mono" onclick="copyToClipboard('box-border', event)">box-border</code><br>(線・余白を含めて幅計算)</p>
+              </div>
+              <div class="bg-cyan-100 box-content w-48 p-4 border-4 border-sky-300">
+                <p class="bg-white p-1 text-center"><code class="copyable font-mono" onclick="copyToClipboard('box-content', event)">box-content</code><br>(中身だけで幅計算)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==========================================
+         🌱 ボーダー & 角丸
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> ボーダーと角丸 (Border & Radius)
+      </h2>
+      <div class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- ボーダーの基本 -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">1. 境界線の基本と太さ</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-4 text-xs text-center">
+              <div class="h-16 w-16 bg-cyan-50 flex items-center justify-center">線なし</div>
+              <div class="h-16 w-16 bg-rose-50 border border-indigo-500 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border', event)">border</code><br>(1px)</div>
+              <div class="h-16 w-16 bg-rose-50 border-2 border-indigo-500 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-2', event)">border-2</code></div>
+              <div class="h-16 w-16 bg-rose-50 border-4 border-indigo-500 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-4', event)">border-4</code></div>
+            </div>
+          </div>
+
+          <!-- ボーダーの位置 -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">2. 境界線の位置</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-4 text-xs text-center">
+              <div class="h-10 w-10 bg-cyan-50 border-indigo-500 border-t-4 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-t-4', event)">-t-</code></div>
+              <div class="h-10 w-10 bg-cyan-50 border-indigo-500 border-r-4 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-r-4', event)">-r-</code></div>
+              <div class="h-10 w-10 bg-cyan-50 border-indigo-500 border-b-4 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-b-4', event)">-b-</code></div>
+              <div class="h-10 w-10 bg-cyan-50 border-indigo-500 border-l-4 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-l-4', event)">-l-</code></div>
+              <div class="h-10 w-10 bg-cyan-50 border-indigo-500 border-x-4 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-x-4', event)">-x-</code></div>
+              <div class="h-10 w-10 bg-cyan-50 border-indigo-500 border-y-4 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-y-4', event)">-y-</code></div>
+            </div>
+          </div>
+
+          <!-- ボーダーのスタイル -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">3. 境界線のスタイル</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-4 text-xs text-center">
+              <div class="h-10 w-16 bg-cyan-50 border-indigo-500 border-2 border-solid flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-solid', event)">solid</code></div>
+              <div class="h-10 w-16 bg-cyan-50 border-indigo-500 border-2 border-dashed flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-dashed', event)">dashed</code></div>
+              <div class="h-10 w-16 bg-cyan-50 border-indigo-500 border-2 border-dotted flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-dotted', event)">dotted</code></div>
+              <div class="h-10 w-16 bg-cyan-50 border-indigo-500 border-4 border-double flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('border-double', event)">double</code></div>
+            </div>
+          </div>
+
+          <!-- 角丸 -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">4. 角の丸みを設定する (Radius)</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-4 text-xs text-center">
+              <div class="h-10 w-16 bg-cyan-200 rounded flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('rounded', event)">rounded</code></div>
+              <div class="h-10 w-16 bg-cyan-300 rounded-md flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('rounded-md', event)">-md</code></div>
+              <div class="h-10 w-16 bg-cyan-400 rounded-lg flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('rounded-lg', event)">-lg</code></div>
+              <div class="h-10 w-16 bg-cyan-500 rounded-2xl flex items-center justify-center text-white"><code class="copyable font-mono" onclick="copyToClipboard('rounded-2xl', event)">-2xl</code></div>
+              <div class="h-10 w-16 bg-cyan-600 rounded-full flex items-center justify-center text-white"><code class="copyable font-mono" onclick="copyToClipboard('rounded-full', event)">-full</code></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==========================================
+         🌱 サイズ (幅・高さ)
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> サイズ (Width / Height)
+      </h2>
+      <div class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">1. 横幅を設定する (Width)</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-2 text-xs text-center">
+              <div class="flex w-full border border-dashed">
+                <div class="h-8 bg-cyan-200 w-2/5 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('w-2/5', event)">w-2/5</code> (40%)</div>
+                <div class="h-8 bg-rose-200 w-3/5 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('w-3/5', event)">w-3/5</code> (60%)</div>
+              </div>
+              <div class="h-8 bg-cyan-300 w-full flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('w-full', event)">w-full</code> (親100%)</div>
+              <div class="h-8 bg-rose-300 w-auto inline-flex px-4 items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('w-auto', event)">w-auto</code> (コンテンツ幅)</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">2. 縦幅を設定する (Height)</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm text-xs text-center flex items-end gap-2 h-40 border border-dashed relative">
+              <span class="absolute top-1 left-2 text-gray-400">親要素 (<code class="copyable font-mono" onclick="copyToClipboard('h-40', event)">h-40</code>)</span>
+              <div class="w-12 bg-cyan-200 h-1/2 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('h-1/2', event)">h-1/2</code></div>
+              <div class="w-12 bg-cyan-300 h-full flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('h-full', event)">h-full</code></div>
+              <div class="w-12 bg-cyan-400 h-20 flex items-center justify-center"><code class="copyable font-mono" onclick="copyToClipboard('h-20', event)">h-20</code><br>(80px)</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">3. 最大横幅を設定する (max-width)</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-1 text-xs text-center text-white overflow-x-auto">
+            <div class="bg-sky-400 max-w-xs py-1 mx-auto rounded"><code class="copyable font-mono" onclick="copyToClipboard('max-w-xs', event)">max-w-xs</code> (320px)</div>
+            <div class="bg-sky-500 max-w-sm py-1 mx-auto rounded"><code class="copyable font-mono" onclick="copyToClipboard('max-w-sm', event)">max-w-sm</code> (384px)</div>
+            <div class="bg-sky-600 max-w-md py-1 mx-auto rounded"><code class="copyable font-mono" onclick="copyToClipboard('max-w-md', event)">max-w-md</code> (448px)</div>
+            <div class="bg-sky-700 max-w-lg py-1 mx-auto rounded"><code class="copyable font-mono" onclick="copyToClipboard('max-w-lg', event)">max-w-lg</code> (512px)</div>
+            <p class="text-slate-500 text-left mt-2">※ 画面幅が指定サイズ以上の場合はその幅で止まり、狭い場合は100%幅に縮小します。</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==========================================
+         🌱 Flexbox & Grid
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> レイアウト (Flex & Grid)
+      </h2>
+      <div class="space-y-6">
+
+        <!-- Flexbox -->
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">1. フレックス (Flexbox)</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-4 text-xs text-center">
+            
+            <div>
+              <p class="text-left text-gray-500 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('flex flex-row', event)">flex flex-row</code> (デフォルト・横並び)</p>
+              <div class="flex flex-row bg-gray-50 p-2 gap-2 border border-dashed">
+                <div class="bg-sky-200 py-2 px-4 rounded">1</div>
+                <div class="bg-sky-300 py-2 px-4 rounded">2</div>
+                <div class="bg-sky-400 py-2 px-4 rounded">3</div>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-left text-gray-500 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('flex flex-row-reverse', event)">flex flex-row-reverse</code> (逆向き横並び)</p>
+              <div class="flex flex-row-reverse bg-gray-50 p-2 gap-2 border border-dashed">
+                <div class="bg-sky-200 py-2 px-4 rounded">1</div>
+                <div class="bg-sky-300 py-2 px-4 rounded">2</div>
+                <div class="bg-sky-400 py-2 px-4 rounded">3</div>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-left text-gray-500 mb-1 flex items-center">
+                配置の調整 (<code class="copyable font-mono" onclick="copyToClipboard('justify-center items-center', event)">justify-center items-center</code>) <span class="ml-2 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[0.6rem] font-bold">✨追加知識</span>
+              </p>
+              <div class="flex justify-center items-center h-20 bg-gray-50 border border-dashed gap-4">
+                <div class="bg-sky-300 p-2 rounded">中央揃え</div>
+                <div class="bg-sky-400 p-2 rounded"><code class="copyable font-mono" onclick="copyToClipboard('justify-center', event)">justify-center</code></div>
+              </div>
+              <div class="flex justify-between items-center h-16 bg-gray-50 border border-dashed mt-2 px-4">
+                <div class="bg-sky-300 p-2 rounded">両端配置</div>
+                <div class="bg-sky-400 p-2 rounded"><code class="copyable font-mono" onclick="copyToClipboard('justify-between', event)">justify-between</code></div>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-left text-gray-500 mb-1"><code class="copyable font-mono" onclick="copyToClipboard('flex-wrap', event)">flex-wrap</code> (折り返し)</p>
+              <div class="flex flex-wrap bg-gray-50 p-2 gap-2 border border-dashed max-w-xs">
+                <div class="bg-sky-200 py-2 px-6 rounded">Item A</div>
+                <div class="bg-sky-300 py-2 px-6 rounded">Item B</div>
+                <div class="bg-sky-400 py-2 px-6 rounded">Item C</div>
+                <div class="bg-sky-500 py-2 px-6 rounded text-white">Item D (幅が足りないと落ちる)</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Grid -->
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">2. グリッド (Grid)</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm space-y-4 text-xs text-center text-white font-bold">
+            
+            <p class="text-left text-gray-500 font-normal mb-1"><code class="copyable font-mono" onclick="copyToClipboard('grid grid-cols-3 gap-2', event)">grid grid-cols-3 gap-2</code> (3列配置＋隙間)</p>
+            <div class="grid grid-cols-3 gap-2 p-2 bg-gray-50 border border-dashed">
+              <div class="bg-indigo-300 py-4 rounded">01</div>
+              <div class="bg-indigo-400 py-4 rounded">02</div>
+              <div class="bg-indigo-500 py-4 rounded">03</div>
+              <div class="bg-indigo-400 py-4 rounded">04</div>
+              <div class="bg-indigo-500 py-4 rounded">05</div>
+              <div class="bg-indigo-600 py-4 rounded">06</div>
+            </div>
+
+            <p class="text-left text-gray-500 font-normal mb-1 mt-4"><code class="copyable font-mono" onclick="copyToClipboard('grid-cols-2 md:grid-cols-4', event)">grid-cols-2 md:grid-cols-4</code> (画面幅で列数変更)</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 p-2 bg-gray-50 border border-dashed">
+              <div class="bg-emerald-400 py-2 rounded">A</div>
+              <div class="bg-emerald-500 py-2 rounded">B</div>
+              <div class="bg-emerald-600 py-2 rounded">C</div>
+              <div class="bg-emerald-700 py-2 rounded">D</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ==========================================
+         🌱 追加知識：配置とエフェクト
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-yellow-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2 text-2xl">✨</span> 実務で役立つ追加知識 (Extra)
+      </h2>
+      <div class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- ポジショニング -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-yellow-400 pl-2">1. 配置 (Positioning)</h3>
+            <!-- 修正点: z-indexの効果をわかりやすくするため、要素を重ねて配置しました -->
+            <div class="bg-white p-4 rounded-lg shadow-sm text-xs h-40 relative border border-gray-200">
+              <div class="absolute top-2 left-2 bg-rose-500 text-white p-2 rounded shadow-lg z-20"><code class="copyable font-mono" onclick="copyToClipboard('z-20', event)">z-20</code> (前面)</div>
+              <div class="absolute top-5 left-8 bg-blue-500 text-white p-2 rounded shadow-lg z-10"><code class="copyable font-mono" onclick="copyToClipboard('z-10', event)">z-10</code> (背面)</div>
+              <div class="flex items-center justify-center h-full text-gray-400 pt-10">
+                親要素には <code class="copyable font-mono ml-1" onclick="copyToClipboard('relative', event)">relative</code> を設定
+              </div>
+            </div>
+          </div>
+
+          <!-- エフェクト・フィルタ -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-yellow-400 pl-2">2. エフェクトと陰影 (Shadow & Filter)</h3>
+            <div class="bg-white p-6 rounded-lg shadow-sm flex flex-wrap gap-6 text-xs text-center items-center justify-center">
+              <div class="bg-white p-4 rounded shadow-md border"><code class="copyable font-mono" onclick="copyToClipboard('shadow-md', event)">shadow-md</code></div>
+              <div class="bg-white p-4 rounded shadow-xl border"><code class="copyable font-mono" onclick="copyToClipboard('shadow-xl', event)">shadow-xl</code></div>
+              <div class="bg-white p-4 rounded border drop-shadow-md"><code class="copyable font-mono" onclick="copyToClipboard('drop-shadow-md', event)">drop-shadow-md</code></div>
+              <div class="bg-cyan-500 text-white p-4 rounded blur-[2px]"><code class="copyable font-mono" onclick="copyToClipboard('blur-[2px]', event)">blur-[2px]</code></div>
+            </div>
+          </div>
+
+          <!-- インタラクション -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-yellow-400 pl-2">3. 状態変化 (Hover & Focus)</h3>
+            <div class="bg-white p-4 rounded-lg shadow-sm space-y-4 text-sm flex flex-col items-center">
+              <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+                <code class="copyable font-mono" onclick="copyToClipboard('hover:bg-blue-700', event)">hover:bg-blue-700</code> (マウスオーバー)
+              </button>
+              
+              <!-- 修正点: コピーイベントでフォーカスが外れてしまうUXの矛盾を解消しました -->
+              <div class="flex items-center gap-2 w-full max-w-xs mt-2">
+                <input type="text" placeholder="フォーカスしてみて" class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-cyan-500 flex-1">
+                <code class="copyable font-mono text-[0.65rem] bg-gray-100 p-2 rounded" onclick="copyToClipboard('focus:outline-none focus:ring-2 focus:ring-cyan-500', event)">クラスをコピー</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- アニメーション -->
+          <div>
+            <h3 class="text-base font-bold mb-3 border-l-4 border-yellow-400 pl-2">4. 簡単なアニメーション (Animation)</h3>
+            <div class="bg-white p-6 rounded-lg shadow-sm flex gap-6 text-xs justify-center items-center h-full">
+              <div class="bg-green-500 text-white p-3 rounded-full animate-bounce">
+                <code class="copyable font-mono" onclick="copyToClipboard('animate-bounce', event)">animate-bounce</code>
+              </div>
+              <div class="bg-purple-500 text-white p-3 rounded animate-pulse">
+                <code class="copyable font-mono" onclick="copyToClipboard('animate-pulse', event)">animate-pulse</code>
+              </div>
+              <div class="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin cursor-pointer" onclick="copyToClipboard('animate-spin', event)"></div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         🌱 レスポンシブ対応
+    ========================================== -->
+    <section>
+      <h2 class="text-xl font-bold border-b-2 border-cyan-500 pb-2 mb-6 flex items-center">
+        <span class="mr-2">🌱</span> レスポンシブ対応 (Responsive)
+      </h2>
+      <div class="space-y-6">
+
+        <div>
+          <h3 class="text-base font-bold mb-3 border-l-4 border-cyan-400 pl-2">1. 画面幅に応じて表示/非表示を切り替える</h3>
+          <div class="bg-white p-4 rounded-lg shadow-sm text-sm text-center space-y-2">
+            <p class="text-slate-500 mb-4 text-left">※ブラウザの幅を変えて確認してください。</p>
+            
+            <div class="bg-rose-100 p-2 sm:hidden border border-rose-300 text-rose-700 font-bold">
+              現在: <code class="copyable font-mono" onclick="copyToClipboard('sm:hidden', event)">sm:hidden</code> (スマホサイズ)
+            </div>
+            <div class="bg-sky-100 p-2 hidden sm:block md:hidden border border-sky-300">
+              現在: <code class="copyable font-mono" onclick="copyToClipboard('hidden sm:block md:hidden', event)">hidden sm:block md:hidden</code> (sm)
+            </div>
+            <div class="bg-sky-200 p-2 hidden md:block lg:hidden border border-sky-400">
+              現在: <code class="copyable font-mono" onclick="copyToClipboard('hidden md:block lg:hidden', event)">hidden md:block lg:hidden</code> (md)
+            </div>
+            <div class="bg-sky-300 p-2 hidden lg:block xl:hidden border border-sky-500">
+              現在: <code class="copyable font-mono" onclick="copyToClipboard('hidden lg:block xl:hidden', event)">hidden lg:block xl:hidden</code> (lg)
+            </div>
+            <div class="bg-sky-400 p-2 hidden xl:block text-white">
+              現在: <code class="copyable font-mono" onclick="copyToClipboard('hidden xl:block', event)">hidden xl:block</code> (xl)
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- コピー機能のスクリプト -->
+  <script>
+    function copyToClipboard(text, event) {
+      // イベント伝播を止めて、意図しないクリックアクションを防ぐ
+      if (event) event.stopPropagation();
+
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showToast(`Copied: ${text}`);
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    // コピー完了時のトースト（ポップアップ）表示
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-bold transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-2';
+      toast.innerHTML = `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${message}`;
+      
+      document.body.appendChild(toast);
+      
+      // ふわっと表示
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-10', 'opacity-0');
+      });
+
+      // 2秒後に消える
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
