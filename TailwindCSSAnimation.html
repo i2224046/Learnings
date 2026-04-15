@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tailwind CSS Animation Builder</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel (ブラウザ上でJSXをコンパイル) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* スライダー（range）のカスタムスタイル補正 */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 1.2rem;
+      width: 1.2rem;
+      border-radius: 50%;
+      background: #06b6d4;
+      cursor: pointer;
+      margin-top: -0.35rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 0.5rem;
+      cursor: pointer;
+      background: #e2e8f0;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    function App() {
+      // --- States ---
+      const [type, setType] = useState('spin');
+      const [shape, setShape] = useState('box');
+      const [duration, setDuration] = useState(1.0);
+      const [delay, setDelay] = useState(0);
+      const [easing, setEasing] = useState('linear');
+      const [infinite, setInfinite] = useState(true);
+      const [iteration, setIteration] = useState(1);
+      
+      const [toast, setToast] = useState('');
+      const [playKey, setPlayKey] = useState(0);
+
+      // アニメーションのタイプ変更時に、標準の初期値に寄せる
+      const handleTypeChange = (newType) => {
+        setType(newType);
+        if (newType === 'spin') { setDuration(1); setEasing('linear'); }
+        else if (newType === 'ping') { setDuration(1); setEasing('ease-out'); }
+        else if (newType === 'pulse') { setDuration(2); setEasing('ease-in-out'); }
+        else if (newType === 'bounce') { setDuration(1); setEasing('linear'); }
+        setPlayKey(p => p + 1);
+      };
+
+      // クリップボードへコピー
+      const copyToClipboard = (text) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setToast('コードをコピーしました！');
+          setTimeout(() => setToast(''), 2500);
+        } catch (err) {
+          console.error(err);
+        }
+        document.body.removeChild(textArea);
+      };
+
+      // --- コード生成ロジック ---
+      // TailwindのArbitrary Value用ショートハンド (例: animate-[spin_2s_ease-out_infinite])
+      const arbitraryClass = `animate-[${type}_${duration}s_${easing}_${delay > 0 ? delay + 's_' : ''}${infinite ? 'infinite' : iteration}]`;
+
+      // tailwind.config.js 拡張用コード
+      const configCode = `module.exports = {
+  theme: {
+    extend: {
+      animation: {
+        'custom-${type}': '${type} ${duration}s ${easing} ${delay > 0 ? delay + 's ' : ''}${infinite ? 'infinite' : iteration}',
+      }
+    }
+  }
+}
+
+// 使うとき: class="animate-custom-${type}"`;
+
+
+      // --- プレビュー描画ロジック ---
+      // 再描画してアニメーションをリセットするためのキー
+      const animKey = `${type}-${duration}-${delay}-${easing}-${infinite}-${iteration}-${shape}-${playKey}`;
+
+      const getShapeClasses = () => {
+        switch (shape) {
+          case 'circle': return 'w-24 h-24 bg-rose-500 rounded-full shadow-lg';
+          case 'button': return 'px-8 py-4 bg-indigo-500 text-white font-bold rounded-xl shadow-lg flex items-center justify-center';
+          case 'box':
+          default: return 'w-24 h-24 bg-cyan-500 rounded-2xl shadow-lg';
+        }
+      };
+
+      const renderPreviewElement = () => {
+        const animStyle = {
+          animationName: type,
+          animationDuration: `${duration}s`,
+          animationDelay: `${delay}s`,
+          animationTimingFunction: easing,
+          animationIterationCount: infinite ? 'infinite' : iteration,
+        };
+
+        // pingは背後で要素が拡散するため、専用の構造にする
+        if (type === 'ping') {
+          return (
+            <div className="relative flex items-center justify-center">
+              {/* 【修正】背後の拡散要素にも透明なテキストを入れ、Button時のサイズ崩れを防ぐ */}
+              <div style={animStyle} className={`absolute ${getShapeClasses()} opacity-75`}>
+                {shape === 'button' ? <span className="opacity-0">通知あり</span> : ''}
+              </div>
+              <div className={`relative z-10 ${getShapeClasses()}`}>
+                {shape === 'button' ? '通知あり' : ''}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div style={animStyle} className={getShapeClasses()}>
+            {shape === 'button' ? 'Animate!' : ''}
+          </div>
+        );
+      };
+
+      // ---------------- Render ----------------
+      return (
+        <div className="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8 pb-32">
+          
+          {/* 【修正】Tailwind JITに @keyframes を確実に生成させるためのダミークラス */}
+          <div className="hidden animate-spin animate-ping animate-pulse animate-bounce"></div>
+
+          <div className="mb-10 text-center">
+            <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
+              Tailwind Animation Builder
+            </h1>
+            <p className="text-slate-500">直感的なスライダー操作で、思い通りのTailwindアニメーションを作成</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* --- 左側：プレビューエリア --- */}
+            <div className="lg:col-span-5 flex flex-col">
+              <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex-grow flex items-center justify-center min-h-[400px] relative overflow-hidden bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+                
+                {/* リプレイボタン */}
+                <button 
+                  onClick={() => setPlayKey(p => p + 1)}
+                  className="absolute top-4 right-4 bg-white border border-slate-200 shadow-sm text-slate-600 hover:text-cyan-600 hover:border-cyan-200 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition-colors z-20"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  Replay
+                </button>
+
+                {/* 対象要素 (Keyを変えることでアニメーションリセット) */}
+                <div key={animKey}>
+                  {renderPreviewElement()}
+                </div>
+              </div>
+            </div>
+
+            {/* --- 右側：コントロールエリア --- */}
+            <div className="lg:col-span-7 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-8">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Animation Type */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-3">アニメーション (Type)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['spin', 'ping', 'pulse', 'bounce'].map(t => (
+                      <button 
+                        key={t} onClick={() => handleTypeChange(t)}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${type === t ? 'bg-cyan-500 text-white shadow-md shadow-cyan-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Shape Selection */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-3">要素の形 (Shape)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['box', 'circle', 'button'].map(s => (
+                      <button 
+                        key={s} onClick={() => { setShape(s); setPlayKey(p => p + 1); }}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold capitalize transition-all ${shape === s ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <hr className="border-slate-100" />
+
+              {/* Sliders */}
+              <div className="space-y-6">
+                
+                {/* Duration */}
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-sm font-bold text-slate-700">再生時間 (Duration)</label>
+                    <span className="text-sm text-cyan-600 font-mono font-bold bg-cyan-50 px-2 py-0.5 rounded">{duration.toFixed(1)}s</span>
+                  </div>
+                  <input 
+                    type="range" min="0.1" max="5.0" step="0.1" value={duration} 
+                    onChange={e => setDuration(parseFloat(e.target.value))}
+                  />
+                </div>
+
+                {/* Delay */}
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="text-sm font-bold text-slate-700">開始遅延 (Delay)</label>
+                    <span className="text-sm text-cyan-600 font-mono font-bold bg-cyan-50 px-2 py-0.5 rounded">{delay.toFixed(1)}s</span>
+                  </div>
+                  <input 
+                    type="range" min="0" max="5.0" step="0.1" value={delay} 
+                    onChange={e => setDelay(parseFloat(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              <hr className="border-slate-100" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Easing */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-3">イージング (Easing)</label>
+                  <select 
+                    value={easing} 
+                    onChange={e => setEasing(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer"
+                  >
+                    <option value="linear">linear (一定速度)</option>
+                    <option value="ease">ease (開始・終了が緩やか)</option>
+                    <option value="ease-in">ease-in (ゆっくり開始)</option>
+                    <option value="ease-out">ease-out (ゆっくり終了)</option>
+                    <option value="ease-in-out">ease-in-out (開始・終了がゆっくり)</option>
+                  </select>
+                </div>
+
+                {/* Iteration */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-3">繰り返し (Iteration)</label>
+                  <div className="flex flex-col gap-3">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors w-fit">
+                      <input 
+                        type="checkbox" 
+                        checked={infinite} 
+                        onChange={e => setInfinite(e.target.checked)}
+                        className="w-5 h-5 text-cyan-500 rounded border-slate-300 focus:ring-cyan-500 cursor-pointer"
+                      />
+                      <span className="text-sm font-bold text-slate-700">Infinite (無限にループ)</span>
+                    </label>
+
+                    {!infinite && (
+                      <div className="flex items-center gap-2 pl-2">
+                        <span className="text-sm text-slate-500">回数:</span>
+                        <input 
+                          type="number" min="1" max="20" value={iteration} 
+                          onChange={e => setIteration(parseInt(e.target.value))}
+                          className="w-20 border border-slate-200 bg-slate-50 rounded-lg p-2 text-sm text-center font-bold focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* --- 出力エリア --- */}
+          <div className="mt-12 space-y-6">
+            
+            {/* 方法1: Arbitrary Value */}
+            <div className="bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-700">
+              <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-slate-100 font-bold">ワンライナーで使う場合 (Arbitrary Values)</h3>
+                  <p className="text-xs text-slate-400 mt-1">設定をそのままクラス名に埋め込みます。サクッと使いたい時に便利です。</p>
+                </div>
+                <button 
+                  onClick={() => copyToClipboard(`class="${arbitraryClass}"`)}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shrink-0"
+                >
+                  Copy Class
+                </button>
+              </div>
+              <div className="p-6 overflow-x-auto">
+                <code className="text-emerald-400 font-mono text-sm whitespace-nowrap">
+                  &lt;div class="<span className="text-white font-bold">{arbitraryClass}</span>"&gt;&lt;/div&gt;
+                </code>
+              </div>
+            </div>
+
+            {/* 方法2: tailwind.config.js */}
+            <div className="bg-slate-800 rounded-3xl shadow-xl overflow-hidden border border-slate-700">
+              <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-slate-100 font-bold">tailwind.config.js に登録する場合 (推奨)</h3>
+                  <p className="text-xs text-slate-400 mt-1">複数箇所で使いたい場合や、HTMLを綺麗に保ちたい場合は設定ファイルに追記します。</p>
+                </div>
+                <button 
+                  onClick={() => copyToClipboard(configCode)}
+                  className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shrink-0"
+                >
+                  Copy Config
+                </button>
+              </div>
+              <div className="p-6 overflow-x-auto">
+                <pre className="text-sky-300 font-mono text-sm leading-relaxed whitespace-pre">
+                  {configCode}
+                </pre>
+              </div>
+            </div>
+
+          </div>
+
+          {/* トースト通知 */}
+          {toast && (
+            /* 【修正】安定して動作するように標準の animate-bounce クラスを使用 */
+            <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-bold flex items-center gap-2 animate-bounce">
+              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+              {toast}
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
