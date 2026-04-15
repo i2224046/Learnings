@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tailwind CSS Color Palette</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- データのグローバル定義と Tailwind Config -->
+  <script>
+    const COLOR_GROUPS = [
+      { category: 'Monochrome', colors: ['slate', 'gray', 'zinc', 'neutral', 'stone'] },
+      { category: 'Warm', colors: ['red', 'orange', 'amber', 'yellow'] },
+      { category: 'Cool', colors: ['lime', 'green', 'emerald', 'teal', 'cyan', 'sky'] },
+      { category: 'Vibrant', colors: ['blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'] }
+    ];
+    const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+    const allColors = COLOR_GROUPS.flatMap(group => group.colors);
+
+    // Safelistの生成
+    const safelistClasses = [];
+    allColors.forEach(color => {
+      SHADES.forEach(shade => {
+        safelistClasses.push(`bg-${color}-${shade}`);
+      });
+      // 選択状態とフォーカスリングに必要なクラス
+      safelistClasses.push(`ring-${color}-500`);
+      safelistClasses.push(`focus:ring-${color}-500`);
+    });
+
+    tailwind.config = {
+      safelist: safelistClasses
+    }
+  </script>
+
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* 1画面レイアウトのためスクロールを完全に無効化 */
+    body { 
+      background-color: #f8fafc; 
+      overflow: hidden; 
+      margin: 0;
+    }
+    
+    /* トースト用アニメーション */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="text-slate-800 font-sans h-[100dvh]">
+  <div id="root" class="h-full"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const PREFIXES = [
+      { id: 'bg-', label: 'Background (bg-)' },
+      { id: 'text-', label: 'Text (text-)' },
+      { id: 'border-', label: 'Border (border-)' },
+      { id: 'ring-', label: 'Ring (ring-)' }
+    ];
+
+    function App() {
+      const [prefix, setPrefix] = useState('bg-');
+      const [toast, setToast] = useState('');
+      const [selectedColor, setSelectedColor] = useState('blue'); // デフォルト色
+
+      // クリップボードへコピー
+      const copyToClipboard = (text) => {
+        try {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          setToast(`Copied: ${text}`);
+          setTimeout(() => setToast(''), 2000);
+        } catch (err) {
+          console.error('Failed to copy', err);
+        }
+      };
+
+      return (
+        <div className="h-full w-full max-w-7xl mx-auto px-4 py-4 md:py-8 flex flex-col">
+          
+          {/* 1. ヘッダー (高さ固定) */}
+          <div className="flex-none flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-800 flex items-center gap-2">
+                <span className={`w-4 h-4 rounded-full bg-${selectedColor}-500 shadow-sm block transition-colors`}></span>
+                Tailwind Palette
+              </h1>
+              <p className="text-slate-500 text-xs md:text-sm mt-1">
+                色を選び、シェードをクリックしてコピー
+              </p>
+            </div>
+
+            <div className="flex bg-slate-200 p-1 rounded-lg shrink-0 self-start sm:self-auto">
+              {PREFIXES.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setPrefix(p.id)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                    prefix === p.id 
+                      ? 'bg-white text-slate-800 shadow-sm' 
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-300/50'
+                  }`}
+                >
+                  {p.id.replace('-', '')}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. カラーピッカー (高さ固定) */}
+          <div className="flex-none mb-4 md:mb-6">
+            <div className="grid grid-cols-6 sm:grid-cols-11 gap-2 md:gap-3">
+              {allColors.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => setSelectedColor(color)}
+                  className={`
+                    w-full aspect-square md:aspect-auto md:h-10 rounded-full md:rounded-lg shadow-sm transition-all duration-200 
+                    hover:scale-110 focus:outline-none bg-${color}-500
+                    ${selectedColor === color ? `ring-2 ring-offset-2 ring-${color}-500 scale-110 md:scale-105 z-10` : ''}
+                  `}
+                  title={color}
+                  aria-label={color}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* 3. シェード一覧 (残り高さをすべて埋める) */}
+          <div className="flex-1 min-h-0 bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 p-2 md:p-3 flex flex-col md:flex-row gap-1 md:gap-2 overflow-hidden">
+            {SHADES.map((shade) => {
+              const className = `${prefix}${selectedColor}-${shade}`;
+              const isDark = shade >= 500;
+              const textColor = isDark ? 'text-white' : 'text-slate-800';
+              const bgColorClass = `bg-${selectedColor}-${shade}`;
+              
+              return (
+                <button
+                  key={shade}
+                  onClick={() => copyToClipboard(className)}
+                  className={`
+                    group flex-1 w-full md:w-auto rounded-lg md:rounded-xl relative flex flex-row md:flex-col items-center justify-center 
+                    transition-all duration-300 hover:flex-[1.5] md:hover:flex-[1.3] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-${selectedColor}-500
+                    ${bgColorClass}
+                  `}
+                  title={`Copy ${className}`}
+                >
+                  <span className={`text-sm md:text-xl font-bold ${textColor}`}>
+                    {shade}
+                  </span>
+                  
+                  {/* PC用のクラス名ホバー表示 */}
+                  <span className={`absolute bottom-4 text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity hidden md:block whitespace-nowrap ${textColor}`}>
+                    {className}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* トースト通知 */}
+          {toast && (
+            <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl z-50 text-sm font-bold flex items-center gap-2 animate-fade-in-up pointer-events-none">
+              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+              <span className="font-mono">{toast}</span>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
