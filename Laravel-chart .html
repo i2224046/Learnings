@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laravel Project Organization Chart</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* 1. 全体デザイン・トーン＆マナー / CSS変数定義 */
+    :root {
+      --color-white: #FFFFFF;
+      --color-bg: #F9F9F9;
+      --color-black: #111111;
+      --color-border: #000000;
+      --color-gray: #767676;
+      --color-gray-dark: #222222;
+      
+      --font-main: 'Noto Sans JP', sans-serif;
+      --font-code: 'Roboto Mono', monospace;
+      
+      --shadow-solid: 4px 4px 0px rgba(0, 0, 0, 1);
+      --shadow-solid-hover: 2px 2px 0px rgba(0, 0, 0, 1);
+      --shadow-solid-active: 0px 0px 0px rgba(0, 0, 0, 1);
+      
+      --shadow-root: 8px 8px 0px rgba(0, 0, 0, 1);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--color-bg);
+      font-family: var(--font-main);
+      color: var(--color-black);
+      overflow: hidden; /* スクロール禁止（1画面完結） */
+      user-select: none; /* ドラッグ中のテキスト選択防止 */
+    }
+
+    /* ラッパー（パン・ズーム操作エリア） */
+    .viewport-wrapper {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      cursor: grab;
+      overflow: hidden;
+    }
+    .viewport-wrapper:active {
+      cursor: grabbing;
+    }
+
+    /* キャンバス（実際の描画領域） */
+    .chart-canvas {
+      display: inline-block;
+      transform-origin: 0 0;
+      will-change: transform;
+      padding: 50px;
+    }
+
+    /* UI: コントロールボタン群 */
+    .controls-panel {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      gap: 15px;
+      z-index: 100;
+    }
+    .btn-control {
+      background-color: var(--color-white);
+      color: var(--color-black);
+      border: 2px solid var(--color-border);
+      box-shadow: var(--shadow-solid);
+      border-radius: 0;
+      width: 48px;
+      height: 48px;
+      font-family: var(--font-code);
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s, color 0.2s;
+    }
+    .btn-control:hover {
+      background-color: var(--color-black);
+      color: var(--color-white);
+      transform: translate(2px, 2px);
+      box-shadow: var(--shadow-solid-hover);
+    }
+    .btn-control:active {
+      transform: translate(4px, 4px);
+      box-shadow: var(--shadow-solid-active);
+    }
+    .btn-reset {
+      width: auto;
+      padding: 0 20px;
+      font-size: 1rem;
+      font-family: var(--font-main);
+    }
+
+    /* 3. コンポーネント仕様: カード・ツリー */
+    .org-tree ul {
+      padding-top: 40px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-left: 0;
+      margin: 0;
+    }
+    .org-tree li {
+      text-align: center;
+      list-style-type: none;
+      position: relative;
+      padding: 40px 10px 0 10px;
+    }
+
+    /* ツリーの線（コネクター）描画 */
+    .org-tree li::before, .org-tree li::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 50%;
+      border-top: 2px solid var(--color-border);
+      width: 50%;
+      height: 40px;
+    }
+    .org-tree li::after {
+      right: auto;
+      left: 50%;
+      border-left: 2px solid var(--color-border);
+    }
+    .org-tree li:only-child::after, .org-tree li:only-child::before {
+      display: none;
+    }
+    .org-tree li:only-child {
+      padding-top: 0;
+    }
+    .org-tree li:first-child::before, .org-tree li:last-child::after {
+      border: 0 none;
+    }
+    .org-tree li:last-child::before {
+      border-right: 2px solid var(--color-border);
+      border-radius: 0;
+    }
+    .org-tree li:first-child::after {
+      border-radius: 0;
+    }
+    .org-tree ul::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      border-left: 2px solid var(--color-border);
+      width: 0;
+      height: 40px;
+    }
+
+    /* ノードカード基本スタイル */
+    .node-card {
+      background-color: var(--color-white);
+      border: 2px solid var(--color-border);
+      border-radius: 0;
+      text-align: left;
+      display: inline-block;
+      cursor: default;
+    }
+
+    /* ルートノード */
+    .root-card {
+      padding: 20px 40px;
+      border: 4px solid var(--color-border);
+      box-shadow: var(--shadow-root);
+      background-color: var(--color-white);
+      text-align: center;
+    }
+    .root-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0;
+      font-family: var(--font-code);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* カテゴリノード */
+    .category-card {
+      width: 320px;
+      padding: 20px;
+      box-shadow: var(--shadow-solid);
+      white-space: normal;
+    }
+    .category-header {
+      margin-bottom: 15px;
+    }
+    .category-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-bottom: 3px solid var(--color-border);
+      padding-bottom: 8px;
+      margin: 0 0 5px 0;
+    }
+    .category-desc {
+      font-size: 0.85rem;
+      color: var(--color-gray);
+      margin: 0;
+      font-weight: bold;
+    }
+
+    /* ファイルリスト */
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .file-item {
+      border: 2px solid var(--color-border);
+      padding: 12px;
+      background-color: var(--color-bg);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .file-item:hover {
+      background-color: #EFEFEF;
+    }
+    
+    /* インタラクティブなファイル名ラベル */
+    .file-name {
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--color-white);
+      background-color: var(--color-gray-dark);
+      padding: 4px 8px;
+      display: inline-block;
+      margin-bottom: 8px;
+      word-break: break-all;
+      cursor: pointer; /* クリック可能であることを明示 */
+      transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
+      border: 1px solid var(--color-black);
+    }
+    .file-name:hover {
+      background-color: var(--color-black);
+      transform: translateY(-2px) translateX(-2px);
+      box-shadow: 2px 2px 0px var(--color-border);
+    }
+    .file-name:active {
+      transform: translateY(0) translateX(0);
+      box-shadow: 0px 0px 0px var(--color-border);
+    }
+    
+    .file-desc {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--color-black);
+      margin: 0;
+    }
+
+    /* モーダルウィンドウのスタイル */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .modal-content {
+      background-color: var(--color-white);
+      border: 4px solid var(--color-border);
+      box-shadow: var(--shadow-root);
+      width: 90%;
+      max-width: 600px;
+      padding: 30px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+      font-size: 1.5rem;
+    }
+    .modal-title {
+      font-family: var(--font-code);
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--color-white);
+      background-color: var(--color-black);
+      display: inline-block;
+      padding: 8px 12px;
+      margin: 0 0 20px 0;
+      word-break: break-all;
+      border: 2px solid var(--color-border);
+    }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin: 0 0 8px 0;
+      border-left: 6px solid var(--color-border);
+      padding-left: 10px;
+    }
+    .modal-body p {
+      margin-top: 0;
+      margin-bottom: 24px;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- UI: コントロールボタン -->
+  <div class="controls-panel">
+    <button id="btnZoomIn" class="btn-control" aria-label="ズームイン">+</button>
+    <button id="btnZoomOut" class="btn-control" aria-label="ズームアウト">-</button>
+    <button id="btnReset" class="btn-control btn-reset">Reset</button>
+  </div>
+
+  <!-- 操作・描画領域 -->
+  <div id="viewportWrapper" class="viewport-wrapper">
+    <div id="chartCanvas" class="chart-canvas">
+      
+      <!-- 組織図（ツリー構造） -->
+      <div class="org-tree">
+        <ul>
+          <li>
+            <!-- ルート -->
+            <div class="node-card root-card">
+              <h1 class="root-title">Laravel App Structure</h1>
+            </div>
+            
+            <ul>
+              <!-- カテゴリ1: ルーティング -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">ルーティング</h2>
+                    <p class="category-desc">地図・案内所</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">routes/web.php</div>
+                      <p class="file-desc">アプリの玄関口であり、URLとコントローラーの処理を紐付けるファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">routes/auth.php</div>
+                      <p class="file-desc">認証関連の処理を紐付けるルーティングファイル。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- カテゴリ2: コントローラー -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">コントローラー</h2>
+                    <p class="category-desc">処理の司令塔</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">app/Http/Controllers/ScheduleController.php</div>
+                      <p class="file-desc">データの保存、削除、取得などの具体的なビジネスロジックを記述するファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">app/Http/Controllers/ProfileController.php</div>
+                      <p class="file-desc">プロフィールに関する処理を行うコントローラー。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- カテゴリ3: モデル -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">モデル</h2>
+                    <p class="category-desc">データベースの窓口</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">app/Models/Schedule.php</div>
+                      <p class="file-desc">データベースのschedulesテーブルとやり取りを行うファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">app/Models/User.php</div>
+                      <p class="file-desc">データベースのusersテーブルとやり取りを行い、書き込み許可やデータの型設定などを管理するファイル。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- カテゴリ4: ビュー / Bladeテンプレート -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">ビュー / Blade</h2>
+                    <p class="category-desc">見た目・画面</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">resources/views/dashboard.blade.php</div>
+                      <p class="file-desc">ユーザーがブラウザで見るメイン画面のファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">resources/views/edit.blade.php</div>
+                      <p class="file-desc">編集用の入力フォームを表示するための画面ファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../components/table/table.blade.php</div>
+                      <p class="file-desc">テーブル全体のデザイン（枠線、角の丸み、はみ出し防止）を担当する部品。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../components/table/th.blade.php</div>
+                      <p class="file-desc">表の見出し部分のデザイン（背景色、フォントサイズなど）を担当する部品。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../components/table/td.blade.php</div>
+                      <p class="file-desc">各行のデータ部分のデザインを担当する部品。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../components/ui/button.blade.php</div>
+                      <p class="file-desc">リンクとボタンを自動的に切り替える万能ボタン部品。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../components/ui/input.blade.php</div>
+                      <p class="file-desc">テキスト入力や時間入力など、あらゆる1行入力を担当する汎用入力部品。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../components/lp-table.blade.php</div>
+                      <p class="file-desc">別のデザインの表を作りたい場合のコンポーネント例。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- カテゴリ5: データベース・マイグレーション -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">DB・マイグレーション</h2>
+                    <p class="category-desc">設計図</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../migrations/..._create_schedules_table.php</div>
+                      <p class="file-desc">schedulesテーブルの中にどのような列を作るかを定義する設計図。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">.../migrations/..._add_last_login_at_to_users_table.php</div>
+                      <p class="file-desc">usersテーブルに最終ログイン日時の項目を追加するための設計図。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">database/database.sqlite</div>
+                      <p class="file-desc">実際のデータが保存されるSQLiteのデータベースファイル本体。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- カテゴリ6: イベント・リスナー・プロバイダー -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">イベント関連</h2>
+                    <p class="category-desc">リスナー・プロバイダー</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">app/Listeners/UpdateLastLoginAt.php</div>
+                      <p class="file-desc">ログインイベントが発生したときに、今の時間を保存する具体的な処理を書くファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">app/Providers/AppServiceProvider.php</div>
+                      <p class="file-desc">アプリ全体の初期設定を行う場所であり、イベントとリスナーを紐付ける役割を果たすファイル。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- カテゴリ7: その他 -->
+              <li>
+                <div class="node-card category-card">
+                  <div class="category-header">
+                    <h2 class="category-title">その他</h2>
+                    <p class="category-desc">エントリポイント等</p>
+                  </div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">public/index.php</div>
+                      <p class="file-desc">アプリケーションのリクエストを最初に受け取るファイル。</p>
+                    </div>
+                    <div class="file-item">
+                      <div class="file-name" title="詳細を見る">bootstrap/app.php</div>
+                      <p class="file-desc">Laravelの初期起動を行うファイル。</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 詳細情報モーダルウィンドウ -->
+  <div id="fileModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button id="modalClose" class="btn-control modal-close" aria-label="閉じる">×</button>
+      <div id="modalTitle" class="modal-title"></div>
+      <div class="modal-body">
+        <h3 class="section-title">具体的な役割</h3>
+        <p id="modalRole"></p>
+        <h3 class="section-title">どこに繋がっているか</h3>
+        <p id="modalConnection"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 構成ファイルの具体的な役割と繋がりの定義 ---
+    const fileDetails = {
+      "routes/web.php": {
+        role: "アプリの「玄関口」であり、「地図・案内所」です。ユーザーがブラウザで入力したURLに対して、どのコントローラーのどの仕事を呼び出すかを定義します。",
+        connection: "ブラウザからのリクエストを受け取り、対応するController（例: ScheduleController）へ処理を引き継ぎます。GET、POST、DELETEなどの通信方式に応じて振り分けます。"
+      },
+      "routes/auth.php": {
+        role: "認証（ログイン・会員登録など）に関連するURLとコントローラーの紐付けを行う専用のルーティングファイルです。",
+        connection: "認証関連のリクエストを受け取り、Laravel標準の認証コントローラー群へ処理を渡します。"
+      },
+      "app/Http/Controllers/ScheduleController.php": {
+        role: "スケジュール機能の「司令塔・実行役」です。リクエストを受け取り、入力値のチェック（バリデーション）、データの保存、削除、取得などの具体的なビジネスロジックを行います。",
+        connection: "web.php（Route）から呼び出され、Schedule（Model）を使ってデータベースを操作し、最終的にdashboard.blade.php（View）へデータを渡して画面を表示させます。"
+      },
+      "app/Http/Controllers/ProfileController.php": {
+        role: "ユーザープロフィールに関する処理（表示・更新・削除）を行うコントローラーです。",
+        connection: "Routeから呼び出され、Userモデルと連携してプロフィール画面のViewを返します。"
+      },
+      "app/Models/Schedule.php": {
+        role: "データベースの schedules テーブルとやり取りを行う「窓口」です。保存を許可する項目（$fillable）などを設定し、不正な書き込みを防ぐ全割当保護を行います。",
+        connection: "ScheduleControllerから呼び出され、データベースへの保存（create）や取得（where, get）などのSQL操作を代行します。"
+      },
+      "app/Models/User.php": {
+        role: "データベースの users テーブルとやり取りを行う窓口です。認証情報や書き込み許可（#[Fillable]）、データの型設定（castsによる日付変換など）を管理します。",
+        connection: "ControllerやListener（例: UpdateLastLoginAt）から呼び出され、ログイン日時の更新やユーザー情報の取得を行います。"
+      },
+      "resources/views/dashboard.blade.php": {
+        role: "ユーザーがブラウザで見るメイン画面（スケジュール一覧・追加・編集兼用）の見た目を構成するBladeテンプレートファイルです。",
+        connection: "ScheduleControllerから変数（$schedules, $editingなど）を受け取り表示します。また、内部で x-table や x-ui.button などのコンポーネントを呼び出します。"
+      },
+      "resources/views/edit.blade.php": {
+        role: "編集用の入力フォームを表示するための画面ファイルです。（※二刀流フォーム実装によりdashboard.blade.phpに機能統合されるアプローチもあります）",
+        connection: "Controllerから編集対象のデータを受け取り、更新（PUT）用のフォームを描画します。"
+      },
+      ".../components/table/table.blade.php": {
+        role: "テーブル全体のデザイン（枠線、角の丸み、はみ出し防止）を担当する外枠のBladeコンポーネントです。",
+        connection: "dashboard.blade.php などの画面から `<x-table.table>` として呼び出され、内部の `$slot` に具体的な行（tr）が流し込まれます。"
+      },
+      ".../components/table/th.blade.php": {
+        role: "表の見出し（th）部分のデザイン（背景色、フォントサイズなど）を担当するBladeコンポーネントです。",
+        connection: "テーブルコンポーネント内で `<x-table.th>` として呼び出されます。"
+      },
+      ".../components/table/td.blade.php": {
+        role: "各行のデータ（td）部分のデザイン（余白や下線など）を担当するBladeコンポーネントです。",
+        connection: "テーブルコンポーネント内で `<x-table.td>` として呼び出されます。"
+      },
+      ".../components/ui/button.blade.php": {
+        role: "リンク（aタグ）とボタン（buttonタグ）を `$href` 属性の有無によって自動的に切り替える万能ボタンコンポーネントです。",
+        connection: "各画面から `<x-ui.button>` として呼び出され、統一されたデザインを提供します。フォーム送信やリンク移動など幅広く利用されます。"
+      },
+      ".../components/ui/input.blade.php": {
+        role: "テキスト入力や時間入力など、あらゆる1行入力を担当する汎用入力コンポーネントです。",
+        connection: "フォーム内で `<x-ui.input>` として呼び出され、`$attributes->merge` によってtype属性（textやtime）などを柔軟に上書きできます。"
+      },
+      ".../components/lp-table.blade.php": {
+        role: "別のデザインの表を作りたい場合に備えた、代替デザイン用のテーブルコンポーネント例です。",
+        connection: "ランディングページ等のViewから呼び出され、通常管理画面とは異なるデザインを提供します。"
+      },
+      ".../migrations/..._create_schedules_table.php": {
+        role: "データベースに schedules テーブルを新規作成するための「設計図」です。カラム（time, memo, user_idなど）を定義します。",
+        connection: "`php artisan migrate` コマンドによって実行され、実際のSQLiteデータベースファイルにテーブル構造を構築します。"
+      },
+      ".../migrations/..._add_last_login_at_to_users_table.php": {
+        role: "既存の users テーブルに、最終ログイン日時（last_login_at）を保存するためのカラムを追加する設計図です。",
+        connection: "migrate時に実行され、Userモデルでこの追加カラム（タイムスタンプ）を利用できるようになります。"
+      },
+      "database/database.sqlite": {
+        role: "実際のデータ（ユーザー情報、スケジュール等）が保存されるSQLiteのデータベースファイル本体です。",
+        connection: "すべてのModelからの操作（保存・取得・更新・削除）はこのファイルに対して行われます。"
+      },
+      "app/Listeners/UpdateLastLoginAt.php": {
+        role: "ログイン成功という「イベント」が発生したときに、具体的な処理（現在時刻を保存する）を行う「担当者（リスナー）」です。",
+        connection: "AppServiceProviderで予約され、Loginイベント発生時に呼び出されてUserモデル経由でデータベース（last_login_at）を更新します。"
+      },
+      "app/Providers/AppServiceProvider.php": {
+        role: "アプリ全体の「初期設定」を行う場所です。イベントとリスナーの紐付け（予約）などを行います。",
+        connection: "アプリ起動時に読み込まれ、Loginイベントと UpdateLastLoginAt リスナーを接続し、自動発火の準備を整えます。"
+      },
+      "public/index.php": {
+        role: "アプリケーションのリクエストを最初に受け取るエントリポイント（入り口）となるファイルです。",
+        connection: "すべてのアクセスはここを通り、Laravelのフレームワーク本体（bootstrap/app.php）を起動します。"
+      },
+      "bootstrap/app.php": {
+        role: "Laravelフレームワーク自体の初期起動・設定の読み込みを行うファイルです。",
+        connection: "public/index.php から呼び出され、ルーティングやミドルウェアなどの基盤を準備・提供します。"
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const wrapper = document.getElementById("viewportWrapper");
+      const canvas = document.getElementById("chartCanvas");
+      const modal = document.getElementById("fileModal");
+      const btnCloseModal = document.getElementById("modalClose");
+      
+      let scale = 1;
+      const MIN_SCALE = 0.1;
+      const MAX_SCALE = 3.0;
+      
+      let isDragging = false;
+      let hasDragged = false;
+      let dragStartX, dragStartY;
+      let startX, startY;
+      let translateX = 0;
+      let translateY = 0;
+      let rawCanvasRect;
+
+      // 初期化：全体が画面に収まるようにスケールと位置を計算
+      function initCanvas() {
+        canvas.style.transform = "none";
+        rawCanvasRect = canvas.getBoundingClientRect();
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const padding = 100; 
+        const scaleX = (wrapperRect.width - padding) / rawCanvasRect.width;
+        const scaleY = (wrapperRect.height - padding) / rawCanvasRect.height;
+        
+        scale = Math.min(scaleX, scaleY, 1);
+        if (scale < MIN_SCALE) scale = MIN_SCALE;
+
+        translateX = (wrapperRect.width - rawCanvasRect.width * scale) / 2;
+        translateY = (wrapperRect.height - rawCanvasRect.height * scale) / 2;
+        translateY = Math.max(50, translateY - 50);
+
+        applyTransform();
+      }
+
+      function applyTransform() {
+        if (!rawCanvasRect) return;
+
+        const marginX = window.innerWidth / 2;
+        const marginY = window.innerHeight / 2;
+        const maxTx = marginX;
+        const minTx = -(rawCanvasRect.width * scale) + marginX;
+        const maxTy = marginY;
+        const minTy = -(rawCanvasRect.height * scale) + marginY;
+
+        if (translateX > maxTx) translateX = maxTx;
+        if (translateX < minTx) translateX = minTx;
+        if (translateY > maxTy) translateY = maxTy;
+        if (translateY < minTy) translateY = minTy;
+
+        canvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      }
+
+      function doZoom(factor, centerX, centerY) {
+        const newScale = scale * factor;
+        if (newScale < MIN_SCALE || newScale > MAX_SCALE) return;
+
+        translateX = centerX - (centerX - translateX) * (newScale / scale);
+        translateY = centerY - (centerY - translateY) * (newScale / scale);
+        scale = newScale;
+        applyTransform();
+      }
+
+      // --- イベントリスナー（パン＆ズーム） ---
+      wrapper.addEventListener("mousedown", (e) => {
+        if (e.target.closest(".controls-panel") || e.target.closest(".modal-content")) return;
+        
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+        isDragging = true;
+        hasDragged = false;
+      });
+
+      wrapper.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        
+        // 微細なブレはクリックと判定するため、移動距離でドラッグを判定（閾値を3から5へ拡大）
+        if (Math.abs(e.clientX - dragStartX) > 5 || Math.abs(e.clientY - dragStartY) > 5) {
+          hasDragged = true;
+        }
+
+        e.preventDefault();
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        applyTransform();
+      });
+
+      const endDrag = () => {
+        isDragging = false;
+      };
+      wrapper.addEventListener("mouseup", endDrag);
+      wrapper.addEventListener("mouseleave", endDrag);
+
+      wrapper.addEventListener("wheel", (e) => {
+        if (e.target.closest(".controls-panel") || e.target.closest(".modal-content")) return;
+        e.preventDefault();
+
+        const zoomIntensity = 0.1;
+        const delta = e.deltaY < 0 ? 1 : -1;
+        const factor = Math.exp(delta * zoomIntensity);
+
+        const rect = wrapper.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        doZoom(factor, mouseX, mouseY);
+      }, { passive: false });
+
+      // コントロールボタン
+      document.getElementById("btnZoomIn").addEventListener("click", () => {
+        const rect = wrapper.getBoundingClientRect();
+        doZoom(1.2, rect.width / 2, rect.height / 2);
+      });
+
+      document.getElementById("btnZoomOut").addEventListener("click", () => {
+        const rect = wrapper.getBoundingClientRect();
+        doZoom(1 / 1.2, rect.width / 2, rect.height / 2);
+      });
+
+      document.getElementById("btnReset").addEventListener("click", () => {
+        initCanvas();
+      });
+
+      // --- モーダル制御 ---
+      wrapper.addEventListener("click", (e) => {
+        // ドラッグ操作後ならクリックイベントを無視
+        if (hasDragged) return;
+
+        const fileNameEl = e.target.closest(".file-name");
+        if (fileNameEl) {
+          const fileName = fileNameEl.textContent.trim();
+          const details = fileDetails[fileName];
+          
+          if (details) {
+            document.getElementById("modalTitle").textContent = fileName;
+            document.getElementById("modalRole").textContent = details.role;
+            document.getElementById("modalConnection").textContent = details.connection;
+            modal.classList.remove("hidden");
+          } else {
+            // 詳細データがない場合のフォールバック
+            document.getElementById("modalTitle").textContent = fileName;
+            document.getElementById("modalRole").textContent = "このファイルの具体的な役割情報は現在ありません。";
+            document.getElementById("modalConnection").textContent = "ー";
+            modal.classList.remove("hidden");
+          }
+        }
+      });
+
+      btnCloseModal.addEventListener("click", () => {
+        modal.classList.add("hidden");
+      });
+
+      // モーダルの外側をクリックで閉じる
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.classList.add("hidden");
+        }
+      });
+
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          initCanvas();
+        }, 200);
+      });
+
+      window.onload = initCanvas;
+      initCanvas();
+    });
+  </script>
+</body>
+</html>
