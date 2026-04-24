@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine.js データフロー体系図</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           1. 全体デザイン・トーン＆マナー設定
+           ========================================= */
+        :root {
+            /* 配色 (Color Palette) */
+            --color-white: #FFFFFF;
+            --color-bg: #F9F9F9;
+            --color-black: #000000;
+            --color-text: #111111;
+            --color-gray: #767676;
+            --color-light-gray: #E0E0E0;
+            --color-code-bg: #222222;
+            --color-code-text: #EEEEEE;
+
+            /* タイポグラフィ */
+            --font-main: 'Noto Sans JP', sans-serif;
+            --font-code: 'Roboto Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* マウスパン操作を使うためスクロールを無効化 */
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-main);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        /* =========================================
+           2. ビューポート＆キャンバス（ドラッグ・ズーム領域）
+           ========================================= */
+        #viewport {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+            position: relative;
+            background-image: radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        #viewport:active {
+            cursor: grabbing;
+        }
+
+        /* キャンバス本体のサイズを拡張し要素がはみ出ないように設定 */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1600px;
+            height: 1200px;
+            transform-origin: 0 0;
+            transition: transform 0.05s linear; /* ズーム時のわずかな滑らかさ */
+        }
+
+        .header-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            pointer-events: none;
+            background: var(--color-white);
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--color-black);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 1);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            border-bottom: 3px solid var(--color-black);
+            padding-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .header-desc {
+            font-size: 0.9rem;
+            color: var(--color-gray);
+        }
+
+        /* =========================================
+           3. コンポーネント (カード、コードブロック)
+           ========================================= */
+        pre {
+            background-color: var(--color-code-bg);
+            color: var(--color-code-text);
+            font-family: var(--font-code);
+            padding: 1rem;
+            border-radius: 0;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 2px solid var(--color-black);
+            font-size: 0.85rem;
+        }
+
+        code {
+            font-family: var(--font-code);
+        }
+
+        .card {
+            background-color: var(--color-white);
+            border: 2px solid var(--color-black);
+            border-radius: 0;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
+            padding: 1.25rem;
+            cursor: pointer; /* クリック可能であることを示す */
+            position: relative;
+            z-index: 10;
+            transition: all 0.2s ease-out;
+        }
+
+        .card:hover {
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+            transform: translate(-2px, -2px);
+        }
+
+        .card--js {
+            border-width: 3px;
+        }
+
+        /* ハイライト状態のスタイル */
+        .card.is-active {
+            border-color: var(--color-black);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 1);
+            transform: translate(-2px, -2px);
+            z-index: 20;
+        }
+
+        /* 他が選択されているときの非選択カード */
+        .card.is-dimmed {
+            opacity: 0.4;
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+        }
+
+        .card__badge {
+            display: inline-block;
+            background-color: var(--color-black);
+            color: var(--color-white);
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 0.2rem 0.5rem;
+            margin-bottom: 0.75rem;
+            pointer-events: none;
+        }
+
+        .card__badge--inverse {
+            background-color: var(--color-white);
+            color: var(--color-black);
+            border: 2px solid var(--color-black);
+        }
+
+        .card__title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            word-break: break-all;
+            pointer-events: none;
+        }
+
+        .card__desc {
+            font-size: 0.9rem;
+            color: var(--color-gray);
+            pointer-events: none;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--color-black);
+            padding-bottom: 0.2rem;
+            margin-bottom: 0.5rem;
+            pointer-events: none;
+        }
+
+        .card__explanation {
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--color-black);
+            pointer-events: none;
+        }
+
+        /* =========================================
+           4. カラムレイアウト (左・中央・右)
+           ========================================= */
+        .flow-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            width: 100%;
+            height: 100%;
+            padding: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            height: 100%;
+        }
+
+        .flow-col--left, .flow-col--right {
+            width: 250px;
+            gap: 20px;
+        }
+
+        .flow-col--center {
+            width: 550px;
+            gap: 20px;
+        }
+
+        /* SVGキャンバス（線を引くためのレイヤー） */
+        .svg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: visible; /* 線がキャンバス外で切れないようにする */
+        }
+        
+        /* 線のトランジション */
+        line {
+            transition: stroke 0.2s, stroke-width 0.2s, opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 操作案内用ヘッダー -->
+    <header class="header-overlay">
+        <h1 class="page-title">Alpine.js データフロー図</h1>
+        <p class="header-desc">
+            ・ドラッグで移動、ホイールで拡大/縮小<br>
+            ・ブロックをクリックで繋がりをハイライト
+        </p>
+    </header>
+
+    <!-- ドラッグ＆ズーム領域 -->
+    <div id="viewport">
+        <div id="canvas">
+            <svg class="svg-canvas" id="svg-layer"></svg>
+
+            <div class="flow-container">
+                <!-- ==============================
+                     左列（操作元 / 送り元）
+                     ============================== -->
+                <div class="flow-col flow-col--left">
+                    <div class="card" id="srcTabItem">
+                        <span class="card__badge">操作元</span>
+                        <div class="card__title">tab-item.blade.php</div>
+                        <div class="card__desc">タブ切り替えボタン</div>
+                    </div>
+
+                    <div class="card" id="srcTab">
+                        <span class="card__badge">操作元</span>
+                        <div class="card__title">tab.blade.php</div>
+                        <div class="card__desc">優先度セレクトボックス</div>
+                    </div>
+
+                    <div class="card" id="srcListOp">
+                        <span class="card__badge">操作元</span>
+                        <div class="card__title">list.blade.php</div>
+                        <div class="card__desc">各種操作ボタン<br>（編集、ゴミ箱、キャンセル）</div>
+                    </div>
+
+                    <div class="card" id="srcCtrl">
+                        <span class="card__badge">送り元</span>
+                        <div class="card__title">ScheduleController.php</div>
+                        <div class="card__desc">URLパラメータ、変数<br>($editing, $schedules)</div>
+                    </div>
+
+                    <div class="card" id="srcBg">
+                        <span class="card__badge">実行場所</span>
+                        <div class="card__title">ブラウザ バックグラウンド</div>
+                        <div class="card__desc">10秒おきの定期監視</div>
+                    </div>
+                </div>
+
+                <!-- ==============================
+                     中央列（Alpine.js ブロック）
+                     ============================== -->
+                <div class="flow-col flow-col--center">
+                    <div class="card card--js" id="jsTab">
+                        <span class="card__badge card__badge--inverse">Alpine.js</span>
+                        <h2 class="section-title">タブ管理ブロック</h2>
+                        <pre><code>activeTab: '{{ request('tab', 'list') }}',</code></pre>
+                        <div class="card__explanation">
+                            <strong>解説:</strong> 初期位置をURLから決め、ボタンクリックで <code>activeTab</code> が書き換わり、どの部品を見せるかが一瞬で切り替わります。
+                        </div>
+                    </div>
+
+                    <div class="card card--js" id="jsFilter">
+                        <span class="card__badge card__badge--inverse">Alpine.js</span>
+                        <h2 class="section-title">フィルター表示管理ブロック</h2>
+                        <pre><code>activeFilter: '{{ request('filter', '') }}',
+shouldShow(priority) { ... }</code></pre>
+                        <div class="card__explanation">
+                            <strong>解説:</strong> セレクトボックス操作で <code>activeFilter</code> が変更され、各行が条件に合うか <code>shouldShow</code> に問い合わせ、合わない行が隠れます。
+                        </div>
+                    </div>
+
+                    <div class="card card--js" id="jsMode">
+                        <span class="card__badge card__badge--inverse">Alpine.js</span>
+                        <h2 class="section-title">モード切替ブロック</h2>
+                        <pre><code>isEditMode: false,</code></pre>
+                        <div class="card__explanation">
+                            <strong>解説:</strong> このスイッチがtrueになると、一括操作用に画面上の「編集ボタン」を「チェックボックス」に一斉に書き換えます。
+                        </div>
+                    </div>
+
+                    <div class="card card--js" id="jsEdit">
+                        <span class="card__badge card__badge--inverse">Alpine.js</span>
+                        <h2 class="section-title">インライン編集データ</h2>
+                        <pre><code>editingData: @js($editing ?? [...]),</code></pre>
+                        <div class="card__explanation">
+                            <strong>解説:</strong> 編集ボタンを押すと行データが同期され、画面遷移なしで入力欄が埋まります。
+                        </div>
+                    </div>
+
+                    <div class="card card--js" id="jsNotify">
+                        <span class="card__badge card__badge--inverse">Alpine.js</span>
+                        <h2 class="section-title">通知システムブロック</h2>
+                        <pre><code>schedules: @js($schedules),
+lastNotified: '',
+checkNotifications() { ... }</code></pre>
+                        <div class="card__explanation">
+                            <strong>解説:</strong> Controllerから届いた予定を監視し、10秒ごとに時間を確認してアラートを出します。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==============================
+                     右列（反映先）
+                     ============================== -->
+                <div class="flow-col flow-col--right">
+                    <div class="card" id="dstDash">
+                        <span class="card__badge">反映先</span>
+                        <div class="card__title">dashboard.blade.php</div>
+                        <div class="card__desc">本体のコンポーネント<br>切り替えエリア (x-show)</div>
+                    </div>
+
+                    <div class="card" id="dstCal">
+                        <span class="card__badge">反映先</span>
+                        <div class="card__title">calendar.blade.php</div>
+                        <div class="card__desc">各予定の表示/非表示<br>(&lt;div&gt; タグ)</div>
+                    </div>
+
+                    <div class="card" id="dstList">
+                        <span class="card__badge">反映先</span>
+                        <div class="card__title">list.blade.php</div>
+                        <div class="card__desc">行の表示状態、及び<br>チェックボックスへの切替</div>
+                    </div>
+
+                    <div class="card" id="dstForm">
+                        <span class="card__badge">反映先</span>
+                        <div class="card__title">form.blade.php</div>
+                        <div class="card__desc">入力欄へのデータ同期<br>(x-model)</div>
+                    </div>
+
+                    <div class="card" id="dstBrowser">
+                        <span class="card__badge">反映先</span>
+                        <div class="card__title">ブラウザ画面</div>
+                        <div class="card__desc">【時間です！】のアラート</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ===============================================
+         * 描画ロジック (要素間の結線)
+         * ===============================================
+         */
+        const svgLayer = document.getElementById('svg-layer');
+        const canvasElement = document.getElementById('canvas');
+
+        // 結線定義
+        const connections = [
+            // 左列から中央列
+            { from: 'srcTabItem', to: 'jsTab', isLeftToCenter: true },
+            { from: 'srcTab', to: 'jsFilter', isLeftToCenter: true },
+            { from: 'srcListOp', to: 'jsMode', isLeftToCenter: true },
+            { from: 'srcListOp', to: 'jsEdit', isLeftToCenter: true },
+            { from: 'srcCtrl', to: 'jsTab', isLeftToCenter: true },
+            { from: 'srcCtrl', to: 'jsEdit', isLeftToCenter: true },
+            { from: 'srcCtrl', to: 'jsNotify', isLeftToCenter: true },
+            { from: 'srcBg', to: 'jsNotify', isLeftToCenter: true },
+            // 中央列から右列
+            { from: 'jsTab', to: 'dstDash', isLeftToCenter: false },
+            { from: 'jsFilter', to: 'dstCal', isLeftToCenter: false },
+            { from: 'jsFilter', to: 'dstList', isLeftToCenter: false },
+            { from: 'jsMode', to: 'dstList', isLeftToCenter: false },
+            { from: 'jsEdit', to: 'dstForm', isLeftToCenter: false },
+            { from: 'jsNotify', to: 'dstBrowser', isLeftToCenter: false }
+        ];
+
+        // ズームの影響を受けない絶対的なキャンバス内ローカル座標を取得
+        function getLocalRect(el) {
+            // scaleが1であることを前提に初期ロード時に計算されるため、
+            // offsetTopなどを累積して取得するのが最も正確
+            let top = 0;
+            let left = 0;
+            let width = el.offsetWidth;
+            let height = el.offsetHeight;
+            let current = el;
+
+            while (current && current.id !== 'canvas') {
+                top += current.offsetTop;
+                left += current.offsetLeft;
+                current = current.offsetParent;
+            }
+
+            return { top, left, width, height };
+        }
+
+        function drawLines() {
+            svgLayer.innerHTML = ''; // クリア
+
+            connections.forEach(conn => {
+                const fromEl = document.getElementById(conn.from);
+                const toEl = document.getElementById(conn.to);
+                if (!fromEl || !toEl) return;
+
+                const fromRect = getLocalRect(fromEl);
+                const toRect = getLocalRect(toEl);
+
+                let startX, startY, endX, endY;
+
+                if (conn.isLeftToCenter) {
+                    startX = fromRect.left + fromRect.width;
+                    startY = fromRect.top + fromRect.height / 2;
+                    endX = toRect.left;
+                    endY = toRect.top + toRect.height / 2;
+                } else {
+                    startX = fromRect.left + fromRect.width;
+                    startY = fromRect.top + fromRect.height / 2;
+                    endX = toRect.left;
+                    endY = toRect.top + toRect.height / 2;
+                }
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', startX);
+                line.setAttribute('y1', startY);
+                line.setAttribute('x2', endX);
+                line.setAttribute('y2', endY);
+                
+                // 初期状態のスタイル
+                line.setAttribute('stroke', 'var(--color-black)');
+                line.setAttribute('stroke-width', '2');
+                
+                // ハイライト用の属性付与
+                line.setAttribute('data-from', conn.from);
+                line.setAttribute('data-to', conn.to);
+                
+                svgLayer.appendChild(line);
+            });
+        }
+
+        /**
+         * ===============================================
+         * ハイライト (ブロック選択) ロジック
+         * ===============================================
+         */
+        let activeCardId = null;
+
+        function updateHighlight() {
+            const lines = svgLayer.querySelectorAll('line');
+            const cards = document.querySelectorAll('.card');
+
+            if (!activeCardId) {
+                // 解除状態：すべて元に戻す
+                lines.forEach(l => {
+                    l.setAttribute('stroke', 'var(--color-black)');
+                    l.setAttribute('stroke-width', '2');
+                    l.style.opacity = '1';
+                });
+                cards.forEach(c => {
+                    c.classList.remove('is-active', 'is-dimmed');
+                });
+                return;
+            }
+
+            const activeCardIds = new Set([activeCardId]);
+
+            // 関連する線を太く、それ以外を薄くする
+            lines.forEach(l => {
+                const from = l.getAttribute('data-from');
+                const to = l.getAttribute('data-to');
+
+                if (from === activeCardId || to === activeCardId) {
+                    l.setAttribute('stroke', 'var(--color-black)');
+                    l.setAttribute('stroke-width', '5');
+                    l.style.opacity = '1';
+                    activeCardIds.add(from);
+                    activeCardIds.add(to);
+                } else {
+                    l.setAttribute('stroke', 'var(--color-light-gray)');
+                    l.setAttribute('stroke-width', '2');
+                    l.style.opacity = '0.3';
+                }
+            });
+
+            // 関連するカードを目立たせ、それ以外を薄くする
+            cards.forEach(c => {
+                c.classList.remove('is-active', 'is-dimmed');
+                if (c.id === activeCardId) {
+                    c.classList.add('is-active');
+                } else if (!activeCardIds.has(c.id)) {
+                    c.classList.add('is-dimmed');
+                }
+            });
+        }
+
+        /**
+         * ===============================================
+         * パン (ドラッグ移動) ＆ ズーム (拡大縮小) ロジック
+         * ===============================================
+         */
+        const viewport = document.getElementById('viewport');
+        
+        let scale = 1;
+        let pointX = 0;
+        let pointY = 0;
+        let startX = 0;
+        let startY = 0;
+        let isPanning = false;
+        let isDraggingDetected = false; // クリックとドラッグの判定用
+
+        const MIN_SCALE = 0.3;
+        const MAX_SCALE = 2.0;
+
+        function limitBounds() {
+            const ww = viewport.clientWidth;
+            const wh = viewport.clientHeight;
+            // キャンバスの実寸 (CSSで設定しているwidth/height)
+            const cw = 1600;
+            const ch = 1200;
+            
+            const actualW = cw * scale;
+            const actualH = ch * scale;
+
+            // 移動の上限（画面領域内にキャンバスが最低限残るようにする）
+            const minX = -actualW + (ww * 0.2); // 左へ行きすぎない
+            const maxX = ww * 0.8;             // 右へ行きすぎない
+            const minY = -actualH + (wh * 0.2); // 上へ行きすぎない
+            const maxY = wh * 0.8;             // 下へ行きすぎない
+
+            pointX = Math.max(minX, Math.min(maxX, pointX));
+            pointY = Math.max(minY, Math.min(maxY, pointY));
+        }
+
+        function updateTransform() {
+            limitBounds();
+            canvasElement.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+
+        function initViewport() {
+            drawLines();
+
+            const ww = viewport.clientWidth;
+            const wh = viewport.clientHeight;
+            const cw = 1600;
+            const ch = 1200;
+            
+            // 全体を収める初期スケール
+            const scaleX = (ww * 0.85) / cw;
+            const scaleY = (wh * 0.85) / ch;
+            scale = Math.min(scaleX, scaleY);
+            scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+            
+            // 中央配置
+            pointX = (ww - cw * scale) / 2;
+            pointY = (wh - ch * scale) / 2 + 20; 
+            
+            updateTransform();
+        }
+
+        // --- マウスイベント設定 ---
+        viewport.addEventListener('mousedown', (e) => {
+            // テキスト選択などの挙動を一部許容するため、preタグ内等はドラッグ対象外に
+            if (e.target.closest('pre')) return; 
+            
+            e.preventDefault();
+            isPanning = true;
+            isDraggingDetected = false;
+            startX = e.clientX - pointX;
+            startY = e.clientY - pointY;
+        });
+
+        viewport.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            isDraggingDetected = true; // 少しでも動いたらドラッグと判定
+            pointX = e.clientX - startX;
+            pointY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+        });
+
+        // --- クリック・ハイライトイベント設定 ---
+        document.addEventListener('click', (e) => {
+            // ドラッグ中のクリック解放は無視
+            if (isDraggingDetected) {
+                isDraggingDetected = false;
+                return;
+            }
+
+            const card = e.target.closest('.card');
+            if (card) {
+                // 同じカードをクリックしたら解除、違えば選択
+                activeCardId = (activeCardId === card.id) ? null : card.id;
+            } else if (!e.target.closest('.header-overlay')) {
+                // 背景クリックで解除
+                activeCardId = null;
+            }
+            updateHighlight();
+        });
+
+        // --- ズームイベント設定 ---
+        viewport.addEventListener('wheel', (e) => {
+            // コードブロック上のスクロールはズームさせない
+            if (e.target.closest('pre')) return;
+            
+            e.preventDefault();
+            
+            const rect = viewport.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const xs = (mouseX - pointX) / scale;
+            const ys = (mouseY - pointY) / scale;
+            
+            const delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+            if (delta > 0) {
+                scale *= 1.1; // 拡大
+            } else {
+                scale /= 1.1; // 縮小
+            }
+            
+            scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+            
+            pointX = mouseX - xs * scale;
+            pointY = mouseY - ys * scale;
+            
+            updateTransform();
+        }, { passive: false });
+
+        // 起動
+        window.addEventListener('load', initViewport);
+
+    </script>
+</body>
+</html>
